@@ -7,9 +7,8 @@
 #:import TwoLineAvatarListItem kivymd.list.TwoLineAvatarListItem
 #:import ThreeLineAvatarListItem kivymd.list.ThreeLineAvatarListItem
 
-<ConactListItem>:
+<ContactListItem>:
     on_press: print(self.uuid)
-    on_touch_down: print(self.uuid)
 
 
 <HomeScreen>:
@@ -29,13 +28,9 @@
             id: contact_lv
 
 
-
 <NewContactScreen>:
     name: 'newcontact'
     on_pre_enter: self.update_toolbar()
-
-
-
 
 
 <ViewContactScreen>:
@@ -74,6 +69,12 @@
 <AboutScreen>:
     name: 'about'
     on_pre_enter: self.update_toolbar()
+    Image:
+        source: 'screenshots.jpg'
+    Label:
+        text_size: root.width, None
+        size: self.texture_size
+
 
 
 <MyScreenManager>:

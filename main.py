@@ -29,10 +29,6 @@ class ContactListItem(TwoLineAvatarIconListItem):
     def __init__(self, uuid, **kwargs):
         super(ContactListItem, self).__init__(**kwargs)
         self.uuid = uuid
-        print("printando uuid: %r"%self.uuid )
-
-    def on_press(self):
-        print(self.uuid)
 
 
 class ContactScreen(Screen):

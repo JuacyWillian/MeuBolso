@@ -1,2 +1,11 @@
-kivy
-kivymd
+*.pyc
+*.pyo
+*.pyw
+
+*.db
+*.storage
+*.database
+
+__pycache__/
+.idea/
+
