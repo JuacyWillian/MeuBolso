@@ -1,0 +1,128 @@
+#:import NavigationLayout kivymd.navigationdrawer.NavigationLayout
+#:import MDNavigationDrawer kivymd.navigationdrawer.MDNavigationDrawer
+#:import NavigationDrawerToolbar kivymd.navigationdrawer.NavigationDrawerToolbar
+#:import NavigationDrawerIconButton kivymd.navigationdrawer.NavigationDrawerIconButton
+#:import MDLabel kivymd.label.MDLabel
+
+
+<HomeScreen>:
+    name: 'home'
+    on_pre_enter: self.update_toolbar()
+
+    MDLabel:
+        text: 'Hello Home Screen'
+
+
+<ContactScreen>:
+    name: 'contacts'
+    on_pre_enter: self.update_toolbar()
+
+    MDLabel:
+        text: 'Contact Screen'
+
+
+<NewContactScreen>:
+    name: 'newcontact'
+    on_pre_enter: self.update_toolbar()
+
+    MDLabel:
+        text: 'New Contact Screen'
+
+
+<EditContactScreen>:
+    name: 'editcontact'
+    on_pre_enter: self.update_toolbar()
+
+
+<IncomeScreen>:
+    name: 'incomes'
+    on_pre_enter: self.update_toolbar()
+
+
+<NewIncomeScreen>:
+    name: 'newincome'
+    on_pre_enter: self.update_toolbar()
+
+
+<EditIncomeScreen>:
+    name: 'editincome'
+    on_pre_enter: self.update_toolbar()
+
+
+<SettingsScreen>:
+    name: 'settings'
+    on_pre_enter: self.update_toolbar()
+
+
+<AboutScreen>:
+    name: 'about'
+    on_pre_enter: self.update_toolbar()
+
+
+<MyScreenManager>:
+
+
+NavigationLayout:
+    MDNavigationDrawer:
+        id: nav_drawer
+
+        NavigationDrawerToolbar:
+            title: "Meu Bolso"
+            left_action_items: [['arrow-left', lambda x: app.root.toggle_nav_drawer()]]
+
+        NavigationDrawerIconButton:
+            icon: 'home'
+            text: "Inicio"
+            on_release: app.root.ids.scr_mngr.current = 'home'
+
+        NavigationDrawerIconButton:
+            icon: 'account-multiple'
+            text: "Contacts"
+            on_release: app.root.ids.scr_mngr.current = 'contacts'
+
+        NavigationDrawerIconButton:
+            icon: 'cash-multiple'
+            text: "Cash Flow"
+            on_release: app.root.ids.scr_mngr.current = 'incomes'
+
+        NavigationDrawerIconButton:
+            icon: 'help-circle'
+            text: "About"
+            on_release: app.root.ids.scr_mngr.current = 'about'
+
+        NavigationDrawerIconButton:
+            icon: 'settings'
+            text: "Settings"
+            on_release: app.root.ids.scr_mngr.current = 'settings'
+
+        NavigationDrawerIconButton:
+            icon: 'exit-to-app'
+            text: "Quit"
+            on_release: app.stop()
+
+    BoxLayout:
+        orientation: 'vertical'
+
+        Toolbar:
+            id: toolbar
+            title: "Meu Bolso"
+            left_action_items: [['menu', lambda x: app.root.toggle_nav_drawer()]]
+            right_action_items: [['dots-vertical', lambda x: app.root.toggle_nav_drawer()]]
+
+        MyScreenManager:
+            id: scr_mngr
+            HomeScreen:
+
+            ContactScreen:
+
+            NewContactScreen:
+
+            IncomeScreen:
+
+            NewIncomeScreen:
+
+            EditIncomeScreen:
+
+            SettingsScreen:
+
+            AboutScreen:
