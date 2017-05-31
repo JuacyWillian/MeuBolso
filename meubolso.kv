@@ -3,11 +3,18 @@
 #:import NavigationDrawerToolbar kivymd.navigationdrawer.NavigationDrawerToolbar
 #:import NavigationDrawerIconButton kivymd.navigationdrawer.NavigationDrawerIconButton
 #:import MDLabel kivymd.label.MDLabel
+#:import MDList kivymd.list.MDList
+#:import TwoLineAvatarListItem kivymd.list.TwoLineAvatarListItem
+#:import ThreeLineAvatarListItem kivymd.list.ThreeLineAvatarListItem
+
+<ConactListItem>:
+    on_press: print(self.uuid)
+    on_touch_down: print(self.uuid)
 
 
 <HomeScreen>:
     name: 'home'
-    on_pre_enter: self.update_toolbar()
+    on_pre_enter: self.before_load()
 
     MDLabel:
         text: 'Hello Home Screen'
@@ -15,13 +22,23 @@
 
 <ContactScreen>:
     name: 'contacts'
-    on_pre_enter: self.update_toolbar()
+    on_pre_enter: self.before_load()
+    ScrollView:
+        do_scroll_x: False
+        MDList:
+            id: contact_lv
 
-    MDLabel:
-        text: 'Contact Screen'
 
 
 <NewContactScreen>:
+    name: 'newcontact'
+    on_pre_enter: self.update_toolbar()
+
+
+
+
+
+<ViewContactScreen>:
     name: 'newcontact'
     on_pre_enter: self.update_toolbar()
 

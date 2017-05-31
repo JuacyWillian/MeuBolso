@@ -9,10 +9,12 @@ db = Database()
 class Contact(db.Entity):
     uid = PrimaryKey(UUID, auto=True)
     name = Required(str)
-    emails = Set('Contact')
+    photo = Optional(str)
+    emails = Set('Email')
     phones = Set('Phone')
     addresses = Set('Address')
     incomes = Set('Income')
+    status = Optional(str)
 
 
 class Email(db.Entity):
@@ -60,3 +62,4 @@ class IncomeType(db.Entity):
     uuid = PrimaryKey(UUID, auto=True)
     title = Required(str)
     description = Optional(LongStr)
+    income = Set(Income)
