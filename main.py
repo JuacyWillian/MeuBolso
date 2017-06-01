@@ -1,115 +1,36 @@
 from random import randint
 
 from kivy.app import App
-from kivy.properties import ObjectProperty
-from kivy.uix.image import AsyncImage
 from kivy.uix.screenmanager import Screen, ScreenManager
-from kivymd.list import ILeftBody, TwoLineAvatarIconListItem
+from kivymd.navigationdrawer import NavigationLayout
 from kivymd.theming import ThemeManager
-from pony.orm import db_session, select
 
 from app.models import db, Contact
+from app.views.contact_views import *
 
-
-class ContactPhoto(ILeftBody, AsyncImage):
-    pass
 
 
 class HomeScreen(Screen):
+    def __init__(self, **kwargs):
+        super(HomeScreen, self).__init__(**kwargs)
+
+    def before_load(self, ):
+        self.update_toolbar()
+
     def update_toolbar(self, ):
         app = App.get_running_app()
         toolbar = app.root.ids['toolbar']
         toolbar.right_action_items = []
 
 
-class ContactListItem(TwoLineAvatarIconListItem):
-    events_callback = ObjectProperty(None)
-    uuid = ObjectProperty()
-
-    def __init__(self, uuid, **kwargs):
-        super(ContactListItem, self).__init__(**kwargs)
-        self.uuid = uuid
-
-
-class ContactScreen(Screen):
-    app = ObjectProperty()
-
-    def __init__(self, **kwargs):
-        super(ContactScreen, self).__init__(**kwargs)
-
-    def before_load(self):
-        self.app = App.get_running_app()
-        self.update_toolbar()
-        self.load_contacts()
-
-    def update_toolbar(self, ):
-        app = App.get_running_app()
-        toolbar = app.root.ids['toolbar']
-        toolbar.right_action_items = [
-            ['account-plus',
-             lambda x: app.root.ids.scr_mngr.switch_to(NewContactScreen())]
-        ]
-
-    @db_session
-    def load_contacts(self):
-        contact_lv = self.ids.contact_lv
-        contact_list = select(c for c in Contact) \
-                           .order_by(lambda: c.name)[:]
-
-        # todo: apagar esta linha
-        print (contact_list)
-
-        for c in contact_list:
-            item = ContactListItem(
-                uuid=c.uid,
-                text=c.name,
-                secondary_text=c.status
-            )
-            item.add_widget(ContactPhoto(source=c.photo))
-            contact_lv.add_widget(item)
-
-
-class ViewContactScreen(Screen):
-    def update_toolbar(self):
-        app = App.get_running_app()
-        toolbar = app.root.ids['toolbar']
-        toolbar.right_action_items = [
-            ['account-check', lambda x: self.save_contact()],
-            ['account-off',
-             lambda x: app.root.ids.scr_mngr.switch_to(ContactScreen())]
-        ]
-
-
-class NewContactScreen(Screen):
-    def update_toolbar(self):
-        app = App.get_running_app()
-        toolbar = app.root.ids['toolbar']
-        toolbar.right_action_items = [
-            ['account-check', lambda x: self.save_contact()],
-            ['account-off',
-             lambda x: app.root.ids.scr_mngr.switch_to(ContactScreen())]
-        ]
-
-    @db_session
-    def save_contact(self):
-        pass
-
-
-class EditContactScreen(Screen):
-    def update_toolbar(self):
-        app = App.get_running_app()
-        toolbar = app.root.ids['toolbar']
-        toolbar.right_action_items = [
-            ['account-check', lambda x: self.save_contact()],
-            ['account-off',
-             lambda x: app.root.ids.scr_mngr.switch_to(ContactScreen())]
-        ]
-
-    def save_contact(self):
-        pass
 
 
 class IncomeScreen(Screen):
+    def __init__(self, **kwargs):
+        super(IncomeScreen, self).__init__(**kwargs)
+
+    def before_load(self, ): self.update_toolbar()
+
     def update_toolbar(self):
         app = App.get_running_app()
         toolbar = app.root.ids['toolbar']
@@ -120,6 +41,11 @@ class IncomeScreen(Screen):
 
 
 class NewIncomeScreen(Screen):
+    def __init__(self, **kwargs):
+        super(NewIncomeScreen, self).__init__(**kwargs)
+
+    def before_load(self, ): self.update_toolbar()
+
     def update_toolbar(self):
         app = App.get_running_app()
         toolbar = app.root.ids['toolbar']
@@ -134,6 +60,11 @@ class NewIncomeScreen(Screen):
 
 
 class EditIncomeScreen(Screen):
+    def __init__(self, **kwargs):
+        super(EditIncomeScreen, self).__init__(**kwargs)
+
+    def before_load(self, ): self.update_toolbar()
+
     def update_toolbar(self):
         app = App.get_running_app()
         toolbar = app.root.ids['toolbar']
@@ -148,18 +79,55 @@ class EditIncomeScreen(Screen):
 
 
 class SettingsScreen(Screen):
+    def __init__(self, **kwargs):
+        super(SettingsScreen, self).__init__(**kwargs)
+
+    def before_load(self, ): self.update_toolbar()
+
     def update_toolbar(self):
         pass
 
 
 class AboutScreen(Screen):
+    def __init__(self, **kwargs):
+        super(AboutScreen, self).__init__(**kwargs)
+
+    def before_load(self, ): self.update_toolbar()
+
     def update_toolbar(self):
         app = App.get_running_app()
         toolbar = app.root.ids['toolbar']
         toolbar.right_action_items = []
 
 
+class MyRootLayout(NavigationLayout):
+    def __init__(self, **kwargs):
+        super(MyRootLayout, self).__init__(**kwargs)
+
+    def switch_to(self, screen_name, **kwargs):
+        if screen_name == 'home':
+            self.ids.scr_mngr.switch_to(HomeScreen(name=screen_name))
+
+        elif screen_name == 'contacts':
+            self.ids.scr_mngr.switch_to(ContactScreen(name=screen_name))
+
+        elif screen_name == 'viewcontact':
+            uuid = kwargs.get('uuid', None)
+            self.ids.scr_mngr.switch_to(ViewContactScreen(name=screen_name, uuid=uuid))
+
+        elif screen_name == 'incomes':
+            self.ids.scr_mngr.switch_to(IncomeScreen(name=screen_name))
+
+        elif screen_name == 'settings':
+            self.ids.scr_mngr.switch_to(SettingsScreen(name=screen_name))
+
+        elif screen_name == 'about':
+            self.ids.scr_mngr.switch_to(AboutScreen(name=screen_name))
+
+
 class MyScreenManager(ScreenManager):
+    def before_load(self, ): pass
+
     def update_toolbar(self):
         app = App.get_running_app()
         toolbar = app.root.ids['toolbar']
@@ -188,11 +156,10 @@ class MeuBolsoApp(App):
         self.db.generate_mapping(create_tables=True)
 
         try:
-            with db_session:
-                contact = create_contact()
-                self.db.commit()
-        except Exception as ex:
-            print (ex)
+            for i in xrange(10):
+                with db_session:
+                    contato = create_contact()
+        except: pass
 
 
 if __name__ == '__main__':

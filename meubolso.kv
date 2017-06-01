@@ -8,7 +8,7 @@
 #:import ThreeLineAvatarListItem kivymd.list.ThreeLineAvatarListItem
 
 <ContactListItem>:
-    on_press: print(self.uuid)
+    on_press: self.select_contact()
 
 
 <HomeScreen>:
@@ -30,45 +30,73 @@
 
 <NewContactScreen>:
     name: 'newcontact'
-    on_pre_enter: self.update_toolbar()
+    on_pre_enter: self.before_load()
 
 
 <ViewContactScreen>:
-    name: 'newcontact'
-    on_pre_enter: self.update_toolbar()
+    on_pre_enter: self.before_load()
+    ScrollView:
+        do_scroll_x: False
+        BoxLayout:
+            orientation: 'vertical'
 
-    MDLabel:
-        text: 'New Contact Screen'
+            MDLabel:
+                text: root.name
+
+            MDLabel:
+                text: str(root.photo)
+
+            MDLabel:
+                text: root.status
+
+            MDLabel:
+                text: str(root.addresses)
+
+            MDLabel:
+                text: str(root.phones)
+
+            MDLabel:
+                text: str(root.emails)
+
+            MDLabel:
+                text: str(root.incomes)
 
 
 <EditContactScreen>:
     name: 'editcontact'
-    on_pre_enter: self.update_toolbar()
+    on_pre_enter: self.before_load()
+
+    Image:
+        source: contact.photo
 
 
 <IncomeScreen>:
     name: 'incomes'
-    on_pre_enter: self.update_toolbar()
+    on_pre_enter: self.before_load()
+    MDLabel:
+        text: 'incomes'
 
 
 <NewIncomeScreen>:
     name: 'newincome'
-    on_pre_enter: self.update_toolbar()
+    on_pre_enter: self.before_load()
 
 
 <EditIncomeScreen>:
     name: 'editincome'
-    on_pre_enter: self.update_toolbar()
+    on_pre_enter: self.before_load()
 
 
 <SettingsScreen>:
     name: 'settings'
-    on_pre_enter: self.update_toolbar()
+    on_pre_enter: self.before_load()
+    MDLabel:
+        text: 'settings'
 
 
 <AboutScreen>:
     name: 'about'
-    on_pre_enter: self.update_toolbar()
+    on_pre_enter: self.before_load()
     Image:
         source: 'screenshots.jpg'
     Label:
@@ -79,8 +107,10 @@
 
 <MyScreenManager>:
 
+<MyRootLayout@NavigationLayout>:
 
-NavigationLayout:
+
+MyRootLayout:
     MDNavigationDrawer:
         id: nav_drawer
 
@@ -91,27 +121,27 @@ NavigationLayout:
         NavigationDrawerIconButton:
             icon: 'home'
             text: "Inicio"
-            on_release: app.root.ids.scr_mngr.current = 'home'
+            on_release: root.switch_to('home')
 
         NavigationDrawerIconButton:
             icon: 'account-multiple'
             text: "Contacts"
-            on_release: app.root.ids.scr_mngr.current = 'contacts'
+            on_release: root.switch_to('contacts')
 
         NavigationDrawerIconButton:
             icon: 'cash-multiple'
             text: "Cash Flow"
-            on_release: app.root.ids.scr_mngr.current = 'incomes'
-
-        NavigationDrawerIconButton:
-            icon: 'help-circle'
-            text: "About"
-            on_release: app.root.ids.scr_mngr.current = 'about'
+            on_release: root.switch_to('incomes')
 
         NavigationDrawerIconButton:
             icon: 'settings'
             text: "Settings"
-            on_release: app.root.ids.scr_mngr.current = 'settings'
+            on_release: root.switch_to('settings')
+
+        NavigationDrawerIconButton:
+            icon: 'help-circle'
+            text: "About"
+            on_release: root.switch_to('about')
 
         NavigationDrawerIconButton:
             icon: 'exit-to-app'
@@ -129,17 +159,3 @@ NavigationLayout:
         MyScreenManager:
             id: scr_mngr
             HomeScreen:
-
-            ContactScreen:
-
-            NewContactScreen:
-
-            IncomeScreen:
-
-            NewIncomeScreen:
-
-            EditIncomeScreen:
-
-            SettingsScreen:
-
-            AboutScreen:
