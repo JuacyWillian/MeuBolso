@@ -111,9 +111,16 @@ class MyRootLayout(NavigationLayout):
         elif screen_name == 'contacts':
             self.ids.scr_mngr.switch_to(ContactScreen(name=screen_name))
 
+        elif screen_name == 'newcontact':
+            self.ids.scr_mngr.switch_to(NewContactScreen(name=screen_name))
+
         elif screen_name == 'viewcontact':
-            uuid = kwargs.get('uuid', None)
-            self.ids.scr_mngr.switch_to(ViewContactScreen(name=screen_name, uuid=uuid))
+            contato = kwargs.get('contato', None)
+            self.ids.scr_mngr.switch_to(ViewContactScreen(name=screen_name, contato=contato))
+
+        elif screen_name == 'editcontact':
+            contato = kwargs.get('contato', None)
+            self.ids.scr_mngr.switch_to(EditContactScreen(name=screen_name, contato=contato))
 
         elif screen_name == 'incomes':
             self.ids.scr_mngr.switch_to(IncomeScreen(name=screen_name))
@@ -136,15 +143,15 @@ class MyScreenManager(ScreenManager):
     def change_screen(self, screen_name):
         self.current = screen_name
 
-
-def create_contact():
-    myset = 'qwertyuiopl kjhgfdsazxcvbnm '
-    name = ''
-    for i in xrange(0, randint(0, 20)):
-        name += myset[randint(0, len(myset) - 1)]
-    status = 'fail'
-    photo = "screenshots.jpg"
-    return Contact(name=name, status=status, photo=photo)
+#
+# def create_contact():
+#     myset = 'qwertyuiopl kjhgfdsazxcvbnm '
+#     name = ''
+#     for i in xrange(0, randint(0, 20)):
+#         name += myset[randint(0, len(myset) - 1)]
+#     status = 'fail'
+#     photo = "screenshots.jpg"
+#     return Contact(name=name, status=status, photo=photo)
 
 
 class MeuBolsoApp(App):
@@ -154,12 +161,6 @@ class MeuBolsoApp(App):
         self.db = db
         self.db.bind('sqlite', 'database.db', create_db=True)
         self.db.generate_mapping(create_tables=True)
-
-        try:
-            for i in xrange(10):
-                with db_session:
-                    contato = create_contact()
-        except: pass
 
 
 if __name__ == '__main__':

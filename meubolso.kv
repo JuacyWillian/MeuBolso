@@ -6,6 +6,7 @@
 #:import MDList kivymd.list.MDList
 #:import TwoLineAvatarListItem kivymd.list.TwoLineAvatarListItem
 #:import ThreeLineAvatarListItem kivymd.list.ThreeLineAvatarListItem
+#:import MDSpinner kivymd.spinner.MDSpinner
 
 <ContactListItem>:
     on_press: self.select_contact()
@@ -21,7 +22,13 @@
 
 <ContactScreen>:
     name: 'contacts'
-    on_pre_enter: self.before_load()
+    MDSpinner:
+        id: spinner
+        size_hint: None, None
+        size: dp(46), dp(46)
+        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+        active: True
+
     ScrollView:
         do_scroll_x: False
         MDList:
@@ -34,7 +41,7 @@
 
 
 <ViewContactScreen>:
-    on_pre_enter: self.before_load()
+#    on_pre_enter: self.before_load()
     ScrollView:
         do_scroll_x: False
         BoxLayout:
@@ -67,7 +74,7 @@
     on_pre_enter: self.before_load()
 
     Image:
-        source: contact.photo
+        id: contactphoto
 
 
 <IncomeScreen>:
