@@ -8,6 +8,7 @@
 #:import ThreeLineAvatarListItem kivymd.list.ThreeLineAvatarListItem
 #:import MDSpinner kivymd.spinner.MDSpinner
 
+
 <ContactListItem>:
     on_press: self.select_contact()
 
@@ -29,11 +30,6 @@
         pos_hint: {'center_x': 0.5, 'center_y': 0.5}
         active: True
 
-    ScrollView:
-        do_scroll_x: False
-        MDList:
-            id: contact_lv
-
 
 <NewContactScreen>:
     name: 'newcontact'
@@ -41,7 +37,6 @@
 
 
 <ViewContactScreen>:
-#    on_pre_enter: self.before_load()
     ScrollView:
         do_scroll_x: False
         BoxLayout:
@@ -111,8 +106,8 @@
         size: self.texture_size
 
 
-
 <MyScreenManager>:
+
 
 <MyRootLayout@NavigationLayout>:
 

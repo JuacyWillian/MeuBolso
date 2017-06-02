@@ -1,13 +1,11 @@
 from random import randint
 
-from kivy.app import App
-from kivy.uix.screenmanager import Screen, ScreenManager
+from kivy.uix.screenmanager import ScreenManager
 from kivymd.navigationdrawer import NavigationLayout
 from kivymd.theming import ThemeManager
 
 from app.models import db, Contact
 from app.views.contact_views import *
-
 
 
 class HomeScreen(Screen):
@@ -21,8 +19,6 @@ class HomeScreen(Screen):
         app = App.get_running_app()
         toolbar = app.root.ids['toolbar']
         toolbar.right_action_items = []
-
-
 
 
 class IncomeScreen(Screen):
@@ -116,11 +112,13 @@ class MyRootLayout(NavigationLayout):
 
         elif screen_name == 'viewcontact':
             contato = kwargs.get('contato', None)
-            self.ids.scr_mngr.switch_to(ViewContactScreen(name=screen_name, contato=contato))
+            self.ids.scr_mngr.switch_to(
+                ViewContactScreen(name=screen_name, contato=contato))
 
         elif screen_name == 'editcontact':
             contato = kwargs.get('contato', None)
-            self.ids.scr_mngr.switch_to(EditContactScreen(name=screen_name, contato=contato))
+            self.ids.scr_mngr.switch_to(
+                EditContactScreen(name=screen_name, contato=contato))
 
         elif screen_name == 'incomes':
             self.ids.scr_mngr.switch_to(IncomeScreen(name=screen_name))
@@ -143,15 +141,22 @@ class MyScreenManager(ScreenManager):
     def change_screen(self, screen_name):
         self.current = screen_name
 
-#
-# def create_contact():
-#     myset = 'qwertyuiopl kjhgfdsazxcvbnm '
-#     name = ''
-#     for i in xrange(0, randint(0, 20)):
-#         name += myset[randint(0, len(myset) - 1)]
-#     status = 'fail'
-#     photo = "screenshots.jpg"
-#     return Contact(name=name, status=status, photo=photo)
+
+def create_contact(qtde):
+    contact_list = []
+    for i in range(qtde):
+        try:
+            with db_session:
+                myset = 'qwertyuiopl kjhgfdsazxcvbnm '
+                name = ''
+                for i in xrange(0, randint(0, 20)):
+                    name += myset[randint(0, len(myset) - 1)]
+                status = 'fail'
+                photo = "avatar.png"
+                contact_list.append(
+                    Contact(name=name, status=status, photo=photo))
+        except:
+            pass
 
 
 class MeuBolsoApp(App):
@@ -161,6 +166,10 @@ class MeuBolsoApp(App):
         self.db = db
         self.db.bind('sqlite', 'database.db', create_db=True)
         self.db.generate_mapping(create_tables=True)
+
+        # create_contact(50)
+
+        return self.root
 
 
 if __name__ == '__main__':

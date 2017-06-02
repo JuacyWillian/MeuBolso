@@ -1,14 +1,17 @@
 from datetime import datetime
 
-from app.models import Contact
 from kivy.app import App
+from kivy.metrics import dp
 from kivy.properties import ObjectProperty, StringProperty, ListProperty
 from kivy.uix.image import AsyncImage
 from kivy.uix.screenmanager import Screen
+from kivy.uix.scrollview import ScrollView
 from kivymd.dialog import MDDialog
 from kivymd.label import MDLabel
-from kivymd.list import ILeftBody, TwoLineAvatarIconListItem
+from kivymd.list import ILeftBody, TwoLineAvatarIconListItem, MDList
 from pony.orm import db_session, select, delete
+
+from app.models import Contact
 
 
 class ContactPhoto(ILeftBody, AsyncImage):
@@ -16,11 +19,8 @@ class ContactPhoto(ILeftBody, AsyncImage):
 
 
 class ContactListItem(TwoLineAvatarIconListItem):
-    uuid = ObjectProperty()
-
     def __init__(self, uuid, **kwargs):
         super(ContactListItem, self).__init__(**kwargs)
-        self.app = App.get_running_app()
         self.uuid = uuid
 
     def select_contact(self, ):
@@ -31,30 +31,25 @@ class ContactListItem(TwoLineAvatarIconListItem):
 
 
 class ContactScreen(Screen):
-    app = ObjectProperty()
     contact_list = ListProperty()
 
     def __init__(self, **kwargs):
         super(ContactScreen, self).__init__(**kwargs)
-
-    def on_enter(self, *args):
-        print('opening contacts', datetime.now())
         self.app = App.get_running_app()
 
-        print('updating toolbar', datetime.now())
+    def on_enter(self, *args):
         self.update_toolbar()
-
-        print('loading contacts', datetime.now())
         self.load_contacts()
-
         self.populate_listview()
 
     def update_toolbar(self, ):
-        toolbar = self.app.root.ids['toolbar']
+        toolbar = self.app.root.ids.toolbar
+        toolbar.left_action_items = [
+            ['menu', lambda x: self.app.root.toggle_nav_drawer()],
+        ]
+
         toolbar.right_action_items = [
-            ['account-plus',
-             lambda x: self.app.root.ids.scr_mngr.switch_to(
-                 NewContactScreen())]
+            ['account-plus', lambda x: self.app.root.switch_to('newcontact')]
         ]
 
     def load_contacts(self):
@@ -64,22 +59,26 @@ class ContactScreen(Screen):
                 Contact.name)[:]
 
     def populate_listview(self):
+        self.scrollview = ScrollView(do_scroll_x=False)
+        self.contact_lv = MDList(id='contact_lv')
+
         print('loading contact listview', datetime.now())
-        contact_lv = self.ids.contact_lv
+        # contact_lv = self.ids.contact_lv
 
         print('populating listview', datetime.now())
         for c in self.contact_list:
-            item = ContactListItem(uuid=c.uid, text=c.name,
-                                   secondary_text=c.status)
+            item = ContactListItem(
+                uuid=c.uid, text=c.name, secondary_text=c.status)
             item.add_widget(ContactPhoto(source=c.photo))
-            contact_lv.add_widget(item)
+            self.contact_lv.add_widget(item)
         print('finishing of populate listview', datetime.now())
 
+        self.scrollview.add_widget(self.contact_lv)
+        self.add_widget(self.scrollview)
         self.remove_widget(self.ids.spinner)
 
 
 class ViewContactScreen(Screen):
-    contato = ObjectProperty()
     nome = StringProperty()
     photo = ObjectProperty()
     status = StringProperty()
@@ -91,17 +90,20 @@ class ViewContactScreen(Screen):
     def __init__(self, **kwargs):
         super(ViewContactScreen, self).__init__(**kwargs)
         self.contato = kwargs.get('contato', None)
+        self.app = App.get_running_app()
 
     def on_pre_enter(self, *args):
         self.update_toolbar()
         self.load_contact()
 
     def update_toolbar(self):
-        app = App.get_running_app()
-        toolbar = app.root.ids['toolbar']
+        toolbar = self.app.root.ids['toolbar']
+        toolbar.left_action_items = [
+            ['arrow-left', lambda x: self.app.root.switch_to('contacts')]
+        ]
 
         toolbar.right_action_items = [
-            ['pencil', lambda x: app.root.switch_to('editcontact',
+            ['pencil', lambda x: self.app.root.switch_to('editcontact',
                                                     contato=self.contato)],
             ['delete', lambda x: self.delete_contact()]
         ]
@@ -116,11 +118,17 @@ class ViewContactScreen(Screen):
         self.incomes = self.contato.incomes
 
     def delete_contact(self):
-        content = MDLabel(text="Are you sure you want to delete this user?")
+        content = MDLabel(
+            text="Are you sure you want to delete this user?",
+            font_style='Body2', theme_text_color='Secondary',
+            size_hint_y=None,
+            valign='center')
 
         self.dialog = MDDialog(
             title="Confirmation Dialog!",
             content=content,
+            size_hint=(0.8, None),
+            height=dp(200),
             auto_dismiss=False
         )
 
@@ -132,8 +140,8 @@ class ViewContactScreen(Screen):
 
     @db_session
     def confirm_delete(self):
-        delete(c for c in Contact if c.uid == self.contato.uid)
         self.dialog.dismiss()
+        delete(c for c in Contact if c.uid == self.contato.uid)
 
         app = App.get_running_app()
         app.root.switch_to('contacts')
@@ -142,17 +150,20 @@ class ViewContactScreen(Screen):
 class NewContactScreen(Screen):
     def __init__(self, **kwargs):
         super(NewContactScreen, self).__init__(**kwargs)
+        self.app = App.get_running_app()
 
     def before_load(self, ):
         self.update_toolbar()
 
     def update_toolbar(self):
-        app = App.get_running_app()
-        toolbar = app.root.ids['toolbar']
+        toolbar = self.app.root.ids.toolbar
+        toolbar.left_action_items = [
+            ['menu', lambda x: self.app.root.toggle_nav_drawer()],
+        ]
         toolbar.right_action_items = [
             ['check', lambda x: self.save_contact()],
             ['close',
-             lambda x: app.root.switch_to('contacts')]
+             lambda x: self.app.root.switch_to('contacts')]
         ]
 
     def save_contact(self):
@@ -160,33 +171,29 @@ class NewContactScreen(Screen):
 
 
 class EditContactScreen(Screen):
-    contato = ObjectProperty()
-
     def __init__(self, **kwargs):
-        self.uuid = kwargs.get('uuid', None)
         super(EditContactScreen, self).__init__(**kwargs)
+        self.contato = kwargs.get('contato', None)
+        self.app = App.get_running_app()
 
     def before_load(self, ):
         self.update_toolbar()
         self.load_contact()
 
     def update_toolbar(self):
-        app = App.get_running_app()
-        toolbar = app.root.ids['toolbar']
+        toolbar = self.app.root.ids.toolbar
+        toolbar.left_action_items = [
+            ['menu', lambda x: self.app.root.toggle_nav_drawer()],
+        ]
         toolbar.right_action_items = [
             ['check', lambda x: self.update_contact()],
-            ['close', lambda x: app.root.switch_to('contacts')]
+            ['close', lambda x: self.app.root.switch_to('contacts')]
         ]
 
     def load_contact(self):
-        with db_session:
-            self.contato = select(
-                c for c in Contact if c.uid == self.uuid).get()
-
-        self.ids.contactphoto.source = self.contato.photo
+        pass
 
     def update_contact(self):
-        app = App.get_running_app()
         with db_session:
             self.contato.flush()
-        app.root.switch_to('viewcontact', contato=self.contato)
+        self.app.root.switch_to('viewcontact', contato=self.contato)
