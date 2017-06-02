@@ -7,7 +7,7 @@ db = Database()
 
 
 class Contact(db.Entity):
-    uid = PrimaryKey(UUID, auto=True)
+    uuid = PrimaryKey(UUID, auto=True)
     name = Required(str)
     photo = Optional(str)
     emails = Set('Email')
@@ -28,7 +28,7 @@ class Phone(db.Entity):
     uuid = PrimaryKey(UUID, auto=True)
     name = Required(str)
     phone = Required(str)
-    contact = Set(Contact)
+    contact = Required(Contact)
 
 
 class Address(db.Entity):

@@ -7,10 +7,79 @@
 #:import TwoLineAvatarListItem kivymd.list.TwoLineAvatarListItem
 #:import ThreeLineAvatarListItem kivymd.list.ThreeLineAvatarListItem
 #:import MDSpinner kivymd.spinner.MDSpinner
+#:import MDCard kivymd.card.MDCard
+#:import MDSeparator kivymd.card.MDSeparator
+#:import MDFloatingActionButton kivymd.button.MDFloatingActionButton
+
 
 
 <ContactListItem>:
     on_press: self.select_contact()
+
+<ContactHeaderWidget>:
+	orientation: 'vertical'
+	size_hint_y: None
+	height: photo.height + name.height
+
+	AsyncImage:
+		id: photo
+		source: root.photo
+		allow_stretch: True
+		keep_ratio: False
+		size_hint_y: None
+		height: (self.width * 9) / 16
+		padding: dp(4)
+
+	MDLabel:
+		id: name
+		font_size: dp(24)
+		text: root.name
+		size_hint_y: None
+
+<ContactAddressWidget>:
+	orientation: 'vertical'
+	size_hint_y: None
+	height: title.height + sep.height + address_grid.height
+	spacing: dp(4)
+	MDLabel:
+		id: title
+		text: 'Addresses:'
+	MDSeparator:
+		id: sep
+	GridLayout:
+		id: address_grid
+		cols:2
+		size_hint_y: None
+		height: root.grid_height
+
+<ContactEmailWidget>:
+	orientation: 'vertical'
+	size_hint_y: None
+	height: self.minimum_height
+	spacing: dp(16)
+	MDLabel:
+		text: 'Emails:'
+	MDSeparator:
+	GridLayout:
+		id: email_grid
+		cols:2
+		size_hint_y: None
+		height: root.grid_height
+
+<ContactPhoneWidget>:
+	orientation: 'vertical'
+	size_hint_y: None
+	height: self.minimum_height
+	spacing: dp(16)
+
+	MDLabel:
+		text: 'Phones:'
+	MDSeparator:
+	GridLayout:
+		id: phone_grid
+		cols:2
+		size_hint_y: None
+		height: root.grid_height
 
 
 <HomeScreen>:
@@ -33,35 +102,31 @@
 
 <NewContactScreen>:
     name: 'newcontact'
-    on_pre_enter: self.before_load()
+    ContactPhotoWidget:
 
 
 <ViewContactScreen>:
     ScrollView:
         do_scroll_x: False
+
         BoxLayout:
-            orientation: 'vertical'
+			orientation: 'vertical'
+			size_hint_y: None
+			padding: dp(4), dp(4)
+			spacing: dp(4)
+			height: self.minimum_height
 
-            MDLabel:
-                text: root.name
+			ContactHeaderWidget:
+				id: cheaderwidget
 
-            MDLabel:
-                text: str(root.photo)
+            ContactPhoneWidget:
+            	id: cphonewidget
 
-            MDLabel:
-                text: root.status
+            ContactEmailWidget:
+            	id: cemailwidget
 
-            MDLabel:
-                text: str(root.addresses)
-
-            MDLabel:
-                text: str(root.phones)
-
-            MDLabel:
-                text: str(root.emails)
-
-            MDLabel:
-                text: str(root.incomes)
+            ContactAddressWidget:
+            	id: caddresswidget
 
 
 <EditContactScreen>:

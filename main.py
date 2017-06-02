@@ -4,8 +4,9 @@ from kivy.uix.screenmanager import ScreenManager
 from kivymd.navigationdrawer import NavigationLayout
 from kivymd.theming import ThemeManager
 
-from app.models import db, Contact
+from app.models import db, Contact, Email, Phone, Address
 from app.views.contact_views import *
+from app.util import *
 
 
 class HomeScreen(Screen):
@@ -111,14 +112,14 @@ class MyRootLayout(NavigationLayout):
             self.ids.scr_mngr.switch_to(NewContactScreen(name=screen_name))
 
         elif screen_name == 'viewcontact':
-            contato = kwargs.get('contato', None)
+            contact = kwargs.get('contact', None)
             self.ids.scr_mngr.switch_to(
-                ViewContactScreen(name=screen_name, contato=contato))
+                ViewContactScreen(name=screen_name, uuid=contact.uuid))
 
         elif screen_name == 'editcontact':
-            contato = kwargs.get('contato', None)
+            contact = kwargs.get('contact', None)
             self.ids.scr_mngr.switch_to(
-                EditContactScreen(name=screen_name, contato=contato))
+                EditContactScreen(name=screen_name, contact=contact))
 
         elif screen_name == 'incomes':
             self.ids.scr_mngr.switch_to(IncomeScreen(name=screen_name))
@@ -142,21 +143,20 @@ class MyScreenManager(ScreenManager):
         self.current = screen_name
 
 
-def create_contact(qtde):
-    contact_list = []
-    for i in range(qtde):
-        try:
-            with db_session:
-                myset = 'qwertyuiopl kjhgfdsazxcvbnm '
-                name = ''
-                for i in xrange(0, randint(0, 20)):
-                    name += myset[randint(0, len(myset) - 1)]
-                status = 'fail'
-                photo = "avatar.png"
-                contact_list.append(
-                    Contact(name=name, status=status, photo=photo))
-        except:
-            pass
+def create_contact():
+    for name in names:
+        with db_session:
+            contact = Contact(name=name)
+            contact.photo = photo
+
+            for email in emails:
+                contact.emails.create(name=email[0], email=email[1])
+
+            for phone in phones:
+                contact.phones.create(name=phone[0], phone=phone[1])
+
+            for address in addresses:
+                contact.addresses.create(name=address[0], address=address[1])
 
 
 class MeuBolsoApp(App):
@@ -167,7 +167,7 @@ class MeuBolsoApp(App):
         self.db.bind('sqlite', 'database.db', create_db=True)
         self.db.generate_mapping(create_tables=True)
 
-        # create_contact(50)
+        # create_contact()
 
         return self.root
 
