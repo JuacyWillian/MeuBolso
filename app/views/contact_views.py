@@ -36,7 +36,7 @@ class ContactAddressWidget(BoxLayout):
             MDLabel(text=address.name, size_hint=(None, None), height=dp(44)))
         self.ids.address_grid.add_widget(
             MDLabel(text=address.address, size_hint_y=None, height=dp(44)))
-        self.grid_height += dp(44)
+        self.grid_height += dp(46)
 
 
 class ContactEmailWidget(BoxLayout):
@@ -50,7 +50,7 @@ class ContactEmailWidget(BoxLayout):
             MDLabel(text=email.name, size_hint=(None, None), height=dp(24)))
         self.ids.email_grid.add_widget(
             MDLabel(text=email.email, size_hint_y=None, height=dp(24)))
-        self.grid_height += dp(25)
+        self.grid_height += dp(26)
 
 
 class ContactPhoneWidget(BoxLayout):
@@ -64,7 +64,7 @@ class ContactPhoneWidget(BoxLayout):
             MDLabel(text=phone.name, size_hint=(None, None), height=dp(24)))
         self.ids.phone_grid.add_widget(
             MDLabel(text=phone.phone, size_hint_y=None, height=dp(24)))
-        self.grid_height += dp(25)
+        self.grid_height += dp(26)
 
 
 class ContactListItem(OneLineAvatarIconListItem):
