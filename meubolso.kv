@@ -10,77 +10,72 @@
 #:import MDCard kivymd.card.MDCard
 #:import MDSeparator kivymd.card.MDSeparator
 #:import MDFloatingActionButton kivymd.button.MDFloatingActionButton
-
+#:import MDTextField kivymd.textfields.MDTextField
 
 
 <ContactListItem>:
     on_press: self.select_contact()
 
 <ContactHeaderWidget>:
-	orientation: 'vertical'
-	size_hint_y: None
-	height: photo.height + name.height
+    orientation: 'vertical'
+    size_hint_y: None
+    height: photo.height
 
-	AsyncImage:
-		id: photo
-		source: root.photo
-		allow_stretch: True
-		keep_ratio: False
-		size_hint_y: None
-		height: (self.width * 9) / 16
-		padding: dp(4)
+    RelativeLayout:
+        AsyncImage:
+            id: photo
+            source: root.photo
+            allow_stretch: True
+            keep_ratio: False
+            size_hint_y: None
+            height: (self.width * 9) / 16
+            padding: dp(4)
 
-	MDLabel:
-		id: name
-		font_size: dp(24)
-		text: root.name
-		size_hint_y: None
 
 <ContactAddressWidget>:
-	orientation: 'vertical'
-	size_hint_y: None
-	height: title.height + sep.height + address_grid.height
-	spacing: dp(4)
-	MDLabel:
-		id: title
-		text: 'Addresses:'
-	MDSeparator:
-		id: sep
-	GridLayout:
-		id: address_grid
-		cols:2
-		size_hint_y: None
-		height: root.grid_height
+    orientation: 'vertical'
+    size_hint_y: None
+    height: title.height + sep.height + address_grid.height
+    spacing: dp(4)
+    MDLabel:
+        id: title
+        text: 'Addresses:'
+    MDSeparator:
+        id: sep
+    GridLayout:
+        id: address_grid
+        cols:2
+        size_hint_y: None
+        height: root.grid_height
 
 <ContactEmailWidget>:
-	orientation: 'vertical'
-	size_hint_y: None
-	height: self.minimum_height
-	spacing: dp(16)
-	MDLabel:
-		text: 'Emails:'
-	MDSeparator:
-	GridLayout:
-		id: email_grid
-		cols:2
-		size_hint_y: None
-		height: root.grid_height
+    orientation: 'vertical'
+    size_hint_y: None
+    height: self.minimum_height
+    spacing: dp(16)
+    MDLabel:
+        text: 'Emails:'
+    MDSeparator:
+    GridLayout:
+        id: email_grid
+        cols:2
+        size_hint_y: None
+        height: root.grid_height
 
 <ContactPhoneWidget>:
-	orientation: 'vertical'
-	size_hint_y: None
-	height: self.minimum_height
-	spacing: dp(16)
+    orientation: 'vertical'
+    size_hint_y: None
+    height: self.minimum_height
+    spacing: dp(16)
 
-	MDLabel:
-		text: 'Phones:'
-	MDSeparator:
-	GridLayout:
-		id: phone_grid
-		cols:2
-		size_hint_y: None
-		height: root.grid_height
-
+    MDLabel:
+        text: 'Phones:'
+    MDSeparator:
+    GridLayout:
+        id: phone_grid
+        cols:2
+        size_hint_y: None
+        height: root.grid_height
 
 <HomeScreen>:
     name: 'home'
@@ -89,52 +84,138 @@
     MDLabel:
         text: 'Hello Home Screen'
 
-
 <ContactScreen>:
     name: 'contacts'
-    MDSpinner:
-        id: spinner
-        size_hint: None, None
-        size: dp(46), dp(46)
-        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-        active: True
-
 
 <NewContactScreen>:
     name: 'newcontact'
-    ContactPhotoWidget:
+    ScrollView:
+        do_scroll_x: False
+        BoxLayout:
+            size_hint_y: None
+            height: self.minimum_height
+            orientation: 'vertical'
+            RelativeLayout:
+                size_hint: None, None
+                size: photo.width, photo.height
+                AsyncImage:
+                    id: photo
+                    source: root.photo
+                    size_hint_y: None
+                    keep_ratio: False
+                    allow_stretch: True
+                    width: root.width
+                    height: (self.width * 9) / 16
+                MDFloatingActionButton:
+                    id: cambutton
+                    icon: 'camera'
+                    on_press: root.add_photo()
+                    pos_hint:{'right': 0.95, 'y': 0.05}
 
+            MDTextField:
+                id: name
+                hint_text: "Name: "
+                text: root.c_name if root.c_name is not None else ''
+
+            MDTextField:
+                id: phone
+                hint_text: 'Phone: '
+                text: root.phone if root.phone is not None else ''
+
+            MDTextField:
+                id: email
+                hint_text: 'Email: '
+                text: root.email if root.email is not None else ''
+
+            MDTextField:
+                id: address
+                multiline: True
+                hint_text: 'Address: '
+                text: root.address if root.address is not None else ''
+
+
+<EditContactScreen>:
+    ScrollView:
+    ScrollView:
+        do_scroll_x: False
+        BoxLayout:
+            size_hint_y: None
+            height: self.minimum_height
+            orientation: 'vertical'
+            padding: dp(10)
+            spacing: dp(10)
+            RelativeLayout:
+                size_hint: None, None
+                size: photo.width, photo.height
+                AsyncImage:
+                    id: photo
+                    source: root.photo
+                    size_hint_y: None
+                    keep_ratio: False
+                    allow_stretch: True
+                    width: root.width
+                    height: (self.width * 9) / 16
+                MDFloatingActionButton:
+                    id: cambutton
+                    icon: 'camera'
+                    on_press: root.add_photo()
+                    pos_hint:{'right': 0.95, 'y': 0.05}
+
+            MDTextField:
+                id: name
+                hint_text: "Name: "
+                text: root.c_name if root.c_name is not None else ''
+
+            MDTextField:
+                id: phone
+                hint_text: 'Phone: '
+                text: root.phone if root.phone is not None else ''
+
+            MDTextField:
+                id: email
+                hint_text: 'Email: '
+                text: root.email if root.email is not None else ''
+
+            MDTextField:
+                id: address
+                multiline: True
+                hint_text: 'Address: '
+                text: root.address if root.address is not None else ''
 
 <ViewContactScreen>:
     ScrollView:
         do_scroll_x: False
 
         BoxLayout:
-			orientation: 'vertical'
-			size_hint_y: None
-			padding: dp(4), dp(4)
-			spacing: dp(4)
-			height: self.minimum_height
+            orientation: 'vertical'
+            size_hint_y: None
+            padding: dp(10), dp(10)
+            spacing: dp(10)
+            height: self.minimum_height
 
-			ContactHeaderWidget:
-				id: cheaderwidget
+            ContactHeaderWidget:
+                id: cheaderwidget
 
-            ContactPhoneWidget:
-            	id: cphonewidget
+            MDLabel:
+                size_hint_y: None
+                font_style: 'Display1'
+                height: dp(50)
+                text: root.c_name if root.c_name is not None else ''
 
-            ContactEmailWidget:
-            	id: cemailwidget
+            MDLabel:
+                size_hint_y: None
+                height: dp(25)
+                text: 'Phone: ' + root.phone if root.phone is not None else ''
 
-            ContactAddressWidget:
-            	id: caddresswidget
+            MDLabel:
+                size_hint_y: None
+                height: dp(25)
+                text: 'Email: ' + root.email if root.email is not None else ''
 
-
-<EditContactScreen>:
-    name: 'editcontact'
-    on_pre_enter: self.before_load()
-
-    Image:
-        id: contactphoto
+            MDLabel:
+                size_hint_y: None
+                height: dp(40)
+                text: 'Address: '+ root.address if root.address is not None else ''
 
 
 <IncomeScreen>:
@@ -143,23 +224,19 @@
     MDLabel:
         text: 'incomes'
 
-
 <NewIncomeScreen>:
     name: 'newincome'
     on_pre_enter: self.before_load()
 
-
 <EditIncomeScreen>:
     name: 'editincome'
     on_pre_enter: self.before_load()
-
 
 <SettingsScreen>:
     name: 'settings'
     on_pre_enter: self.before_load()
     MDLabel:
         text: 'settings'
-
 
 <AboutScreen>:
     name: 'about'
@@ -170,12 +247,9 @@
         text_size: root.width, None
         size: self.texture_size
 
-
 <MyScreenManager>:
 
-
 <MyRootLayout@NavigationLayout>:
-
 
 MyRootLayout:
     MDNavigationDrawer:

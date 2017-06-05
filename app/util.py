@@ -37,8 +37,12 @@ phones = (
 
 addresses = (
     ['casa', 'estrada dos caboclos, 1285 bl.13 apto.104 Rio de Janeiro - RJ'],
-    ['escritorio', 'estrada dos caboclos, 1285 bl.13 apto.104 Rio de Janeiro - RJ'],
-    ['escritorio', 'estrada dos caboclos, 1285 bl.13 apto.104 Rio de Janeiro - RJ'],
-    ['escritorio', 'estrada dos caboclos, 1285 bl.13 apto.104 Rio de Janeiro - RJ'],
-    ['empresa', 'estrada dos caboclos, 1285 bl.13 apto.104 Rio de Janeiro - RJ'],
+    ['escritorio',
+     'estrada dos caboclos, 1285 bl.13 apto.104 Rio de Janeiro - RJ'],
+    ['escritorio',
+     'estrada dos caboclos, 1285 bl.13 apto.104 Rio de Janeiro - RJ'],
+    ['escritorio',
+     'estrada dos caboclos, 1285 bl.13 apto.104 Rio de Janeiro - RJ'],
+    ['empresa',
+     'estrada dos caboclos, 1285 bl.13 apto.104 Rio de Janeiro - RJ'],
 )

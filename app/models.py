@@ -10,32 +10,11 @@ class Contact(db.Entity):
     uuid = PrimaryKey(UUID, auto=True)
     name = Required(str)
     photo = Optional(str)
-    emails = Set('Email')
-    phones = Set('Phone')
-    addresses = Set('Address')
+    phone = Optional(str)
+    address = Optional(str)
+    email = Optional(str)
     incomes = Set('Income')
     status = Optional(str)
-
-
-class Email(db.Entity):
-    uuid = PrimaryKey(UUID, auto=True)
-    name = Required(str)
-    email = Required(str)
-    contact = Required(Contact)
-
-
-class Phone(db.Entity):
-    uuid = PrimaryKey(UUID, auto=True)
-    name = Required(str)
-    phone = Required(str)
-    contact = Required(Contact)
-
-
-class Address(db.Entity):
-    uuid = PrimaryKey(UUID, auto=True)
-    name = Required(str)
-    address = Required(str)
-    contact = Required(Contact)
 
 
 class Income(db.Entity):

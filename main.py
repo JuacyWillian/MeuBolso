@@ -1,12 +1,13 @@
-from random import randint
-
 from kivy.uix.screenmanager import ScreenManager
 from kivymd.navigationdrawer import NavigationLayout
 from kivymd.theming import ThemeManager
 
-from app.models import db, Contact, Email, Phone, Address
-from app.views.contact_views import *
+from app.models import db, Contact
 from app.util import *
+from app.views.contact_views import *
+
+
+basedir = os.path.abspath(os.path.dirname(__file__))
 
 
 class HomeScreen(Screen):
@@ -112,14 +113,12 @@ class MyRootLayout(NavigationLayout):
             self.ids.scr_mngr.switch_to(NewContactScreen(name=screen_name))
 
         elif screen_name == 'viewcontact':
-            contact = kwargs.get('contact', None)
-            self.ids.scr_mngr.switch_to(
-                ViewContactScreen(name=screen_name, uuid=contact.uuid))
+            uuid = kwargs.get('uuid', None)
+            self.ids.scr_mngr.switch_to(ViewContactScreen(name=screen_name, uuid=uuid))
 
         elif screen_name == 'editcontact':
-            contact = kwargs.get('contact', None)
-            self.ids.scr_mngr.switch_to(
-                EditContactScreen(name=screen_name, contact=contact))
+            uuid = kwargs.get('uuid', None)
+            self.ids.scr_mngr.switch_to(EditContactScreen(name=screen_name, uuid=uuid))
 
         elif screen_name == 'incomes':
             self.ids.scr_mngr.switch_to(IncomeScreen(name=screen_name))
@@ -161,12 +160,13 @@ def create_contact():
 
 class MeuBolsoApp(App):
     theme_cls = ThemeManager()
+    basedir = StringProperty()
 
     def build(self):
         self.db = db
         self.db.bind('sqlite', 'database.db', create_db=True)
         self.db.generate_mapping(create_tables=True)
-
+        self.basedir = basedir
         # create_contact()
 
         return self.root
