@@ -11,6 +11,8 @@
 #:import MDSeparator kivymd.card.MDSeparator
 #:import MDFloatingActionButton kivymd.button.MDFloatingActionButton
 #:import MDTextField kivymd.textfields.MDTextField
+#:import MDIconButton kivymd.button.MDIconButton
+#:import MDCheckbox kivymd.selectioncontrols.MDCheckbox
 
 
 <ContactListItem>:
@@ -95,6 +97,8 @@
             size_hint_y: None
             height: self.minimum_height
             orientation: 'vertical'
+            padding: dp(10), dp(10)
+            spacing: dp(10)
             RelativeLayout:
                 size_hint: None, None
                 size: photo.width, photo.height
@@ -136,13 +140,13 @@
 
 <EditContactScreen>:
     ScrollView:
-    ScrollView:
         do_scroll_x: False
         BoxLayout:
+            id: box
             size_hint_y: None
             height: self.minimum_height
             orientation: 'vertical'
-            padding: dp(10)
+            padding: dp(10), dp(10)
             spacing: dp(10)
             RelativeLayout:
                 size_hint: None, None
@@ -150,11 +154,12 @@
                 AsyncImage:
                     id: photo
                     source: root.photo
-                    size_hint_y: None
-                    keep_ratio: False
+                    size_hint: None, None
+                    keep_ratio: True
                     allow_stretch: True
-                    width: root.width
+                    width: (box.width - box.padding[0] * 2)
                     height: (self.width * 9) / 16
+
                 MDFloatingActionButton:
                     id: cambutton
                     icon: 'camera'
@@ -220,13 +225,113 @@
 
 <IncomeScreen>:
     name: 'incomes'
-    on_pre_enter: self.before_load()
-    MDLabel:
-        text: 'incomes'
+
+
+<MyCheckBox>:
+	size_hint: None, None
+	size: '24dp', '24dp'
+
 
 <NewIncomeScreen>:
     name: 'newincome'
-    on_pre_enter: self.before_load()
+    ScrollView:
+        do_scroll_x: False
+        BoxLayout:
+            size_hint_y: None
+            height: self.minimum_height
+            orientation: 'vertical'
+            padding: dp(10), dp(10)
+            spacing: dp(10)
+
+            MDTextField:
+                id: title
+                hint_text: "Name: "
+
+            MDTextField:
+                id: description
+                multiline: True
+                hint_text: 'Description: '
+
+            BoxLayout:
+                size_hint_y: None
+                height: self.minimum_height
+                MDTextField:
+                    id: pubdate
+                    hint_text: 'Date:'
+
+                MDIconButton:
+                    size_hint: None, None
+                    icon: 'calendar'
+                    on_press: root.show_datepicker('pubdate')
+
+            BoxLayout:
+                size_hint_y: None
+                height: self.minimum_height
+                MDTextField:
+                    id: validate
+                    hint_text: 'Validate: '
+
+                MDIconButton:
+                    size_hint: None, None
+                    icon: 'calendar'
+                    on_press: root.show_datepicker('validate')
+
+            BoxLayout:
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: '10dp'
+
+                MDTextField:
+                    id: value
+                    hint_text: "Value:"
+
+                MDTextField:
+                    id: parcels
+                    hint_text: "Parcels:"
+                    size_hint_x: None
+                    width: '100dp'
+
+            BoxLayout:
+            	size_hint_y: None
+            	height: self.minimum_height
+            	spacing: '10dp'
+            	MDSwitch:
+            		id: switch
+            		size_hint:    None, None
+                    size:        dp(36), dp(48)
+                    pos_hint:    {'center_x': 0.75, 'center_y': 0.5}
+                    _active:        False
+                    on_active: type_ticket.text = 'Receita' if self.active else 'Despesa'
+
+                MDLabel:
+                	id: type_ticket
+                    font_style: 'Caption'
+                    font_size: '16dp'
+                    text: 'Receita'
+
+            BoxLayout:
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: '10dp'
+
+                MDCheckbox:
+                    id: chk_receita
+                    group: 'test'
+
+                MDLabel:
+                    font_style: 'Caption'
+                    font_size: '16dp'
+                    text: 'Receita'
+
+                MDCheckbox:
+                    id: chk_despesa
+                    group: 'test'
+
+                MDLabel:
+                    font_style: 'Caption'
+                    font_size: '16dp'
+                    text: 'Despesa'
+
 
 <EditIncomeScreen>:
     name: 'editincome'

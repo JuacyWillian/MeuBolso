@@ -5,7 +5,7 @@ from kivymd.theming import ThemeManager
 from app.models import db, Contact
 from app.util import *
 from app.views.contact_views import *
-
+from app.views.incomes import IncomeScreen, NewIncomeScreen
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -23,38 +23,38 @@ class HomeScreen(Screen):
         toolbar.right_action_items = []
 
 
-class IncomeScreen(Screen):
-    def __init__(self, **kwargs):
-        super(IncomeScreen, self).__init__(**kwargs)
-
-    def before_load(self, ): self.update_toolbar()
-
-    def update_toolbar(self):
-        app = App.get_running_app()
-        toolbar = app.root.ids['toolbar']
-        toolbar.right_action_items = [
-            ['plus-circle',
-             lambda x: app.root.ids.scr_mngr.switch_to(NewIncomeScreen())]
-        ]
-
-
-class NewIncomeScreen(Screen):
-    def __init__(self, **kwargs):
-        super(NewIncomeScreen, self).__init__(**kwargs)
-
-    def before_load(self, ): self.update_toolbar()
-
-    def update_toolbar(self):
-        app = App.get_running_app()
-        toolbar = app.root.ids['toolbar']
-        toolbar.right_action_items = [
-            ['content-save', lambda x: self.save_income()],
-            ['close',
-             lambda x: app.root.ids.scr_mngr.switch_to(IncomeScreen())]
-        ]
-
-    def save_income(self):
-        pass
+# class IncomeScreen(Screen):
+#     def __init__(self, **kwargs):
+#         super(IncomeScreen, self).__init__(**kwargs)
+#
+#     def before_load(self, ): self.update_toolbar()
+#
+#     def update_toolbar(self):
+#         app = App.get_running_app()
+#         toolbar = app.root.ids['toolbar']
+#         toolbar.right_action_items = [
+#             ['plus-circle',
+#              lambda x: app.root.ids.scr_mngr.switch_to(NewIncomeScreen())]
+#         ]
+#
+#
+# class NewIncomeScreen(Screen):
+#     def __init__(self, **kwargs):
+#         super(NewIncomeScreen, self).__init__(**kwargs)
+#
+#     def before_load(self, ): self.update_toolbar()
+#
+#     def update_toolbar(self):
+#         app = App.get_running_app()
+#         toolbar = app.root.ids['toolbar']
+#         toolbar.right_action_items = [
+#             ['content-save', lambda x: self.save_income()],
+#             ['close',
+#              lambda x: app.root.ids.scr_mngr.switch_to(IncomeScreen())]
+#         ]
+#
+#     def save_income(self):
+#         pass
 
 
 class EditIncomeScreen(Screen):
@@ -123,6 +123,9 @@ class MyRootLayout(NavigationLayout):
         elif screen_name == 'incomes':
             self.ids.scr_mngr.switch_to(IncomeScreen(name=screen_name))
 
+        elif screen_name == 'newincome':
+            self.ids.scr_mngr.switch_to(NewIncomeScreen(name=screen_name))
+
         elif screen_name == 'settings':
             self.ids.scr_mngr.switch_to(SettingsScreen(name=screen_name))
 
@@ -142,22 +145,6 @@ class MyScreenManager(ScreenManager):
         self.current = screen_name
 
 
-def create_contact():
-    for name in names:
-        with db_session:
-            contact = Contact(name=name)
-            contact.photo = photo
-
-            for email in emails:
-                contact.emails.create(name=email[0], email=email[1])
-
-            for phone in phones:
-                contact.phones.create(name=phone[0], phone=phone[1])
-
-            for address in addresses:
-                contact.addresses.create(name=address[0], address=address[1])
-
-
 class MeuBolsoApp(App):
     theme_cls = ThemeManager()
     basedir = StringProperty()
@@ -167,7 +154,6 @@ class MeuBolsoApp(App):
         self.db.bind('sqlite', 'database.db', create_db=True)
         self.db.generate_mapping(create_tables=True)
         self.basedir = basedir
-        # create_contact()
 
         return self.root
 

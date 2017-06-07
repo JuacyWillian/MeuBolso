@@ -13,32 +13,22 @@ class Contact(db.Entity):
     phone = Optional(str)
     address = Optional(str)
     email = Optional(str)
-    incomes = Set('Income')
-    status = Optional(str)
+    tickets = Set('Ticket')
 
 
-class Income(db.Entity):
+class Ticket(db.Entity):
     uuid = PrimaryKey(UUID, auto=True)
     title = Required(str)
     description = Optional(LongStr)
     pubdate = Required(datetime, default=datetime.now())
-    total_value = Required(float)
-    contact = Required(Contact)
+    tvalue = Required(float)
     nparcels = Required(int, default=1)
-    parcels = Set('IncomeParcel')
-    type = Required('IncomeType')
+    parcels = Set('Parcel')
+    type = Required(str)
+    contact = Optional(Contact)
 
 
-class IncomeParcel(db.Entity):
+class Parcel(db.Entity):
     uuid = PrimaryKey(UUID, auto=True)
-    income = Required(Income)
-    description = Required(str)
-    validate = Required(date)
-    value = Required(float)
-
-
-class IncomeType(db.Entity):
-    uuid = PrimaryKey(UUID, auto=True)
-    title = Required(str)
-    description = Optional(LongStr)
-    income = Set(Income)
+    ticket = Required('Ticket')
+    validate = Required(datetime)

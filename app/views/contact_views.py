@@ -38,8 +38,7 @@ class ContactScreen(Screen):
 
         for c in select(c for c in Contact).order_by(
                 Contact.name)[:]:
-            item = ContactListItem(
-                uuid=c.uuid, text=c.name)
+            item = ContactListItem(uuid=c.uuid, text=c.name)
             item.add_widget(ContactPhoto(source=c.photo))
             contact_lv.add_widget(item)
 
