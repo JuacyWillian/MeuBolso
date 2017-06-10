@@ -2,8 +2,7 @@ from kivy.uix.screenmanager import ScreenManager
 from kivymd.navigationdrawer import NavigationLayout
 from kivymd.theming import ThemeManager
 
-from app.models import db, Contact
-from app.util import *
+from app.models import db
 from app.views.contact_views import *
 from app.views.incomes import IncomeScreen, NewIncomeScreen
 
@@ -114,11 +113,13 @@ class MyRootLayout(NavigationLayout):
 
         elif screen_name == 'viewcontact':
             uuid = kwargs.get('uuid', None)
-            self.ids.scr_mngr.switch_to(ViewContactScreen(name=screen_name, uuid=uuid))
+            self.ids.scr_mngr.switch_to(
+                ViewContactScreen(name=screen_name, uuid=uuid))
 
         elif screen_name == 'editcontact':
             uuid = kwargs.get('uuid', None)
-            self.ids.scr_mngr.switch_to(EditContactScreen(name=screen_name, uuid=uuid))
+            self.ids.scr_mngr.switch_to(
+                EditContactScreen(name=screen_name, uuid=uuid))
 
         elif screen_name == 'incomes':
             self.ids.scr_mngr.switch_to(IncomeScreen(name=screen_name))

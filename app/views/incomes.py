@@ -1,21 +1,25 @@
-from kivy.app import App
-from kivy.properties import ObjectProperty, StringProperty, OptionProperty
-from kivy.uix.screenmanager import Screen
-from kivy.uix.scrollview import ScrollView
-from kivymd.date_picker import MDDatePicker
-from kivymd.label import MDLabel
-from kivymd.list import MDList, TwoLineListItem, ThreeLineListItem, IRightBody
-from kivymd.selectioncontrols import MDCheckbox
-from pony.orm import db_session, select
+from datetime import date
+from decimal import Decimal, ROUND_DOWN
 
 from app.models import *
-from app.views.widgets import ContactPhoto, ContactListItem
+from kivy.app import App
+from kivy.properties import ObjectProperty, StringProperty, ListProperty
+from kivy.uix.screenmanager import Screen
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.stacklayout import StackLayout
+from kivymd.date_picker import MDDatePicker
+from kivymd.dialog import MDDialog
+from kivymd.label import MDLabel
+from kivymd.list import MDList, ThreeLineListItem, IRightBody, \
+    OneLineListItem
+from pony.orm import db_session, select, rollback
 
 
 class IncomeListItem(ThreeLineListItem):
     def __init__(self, **kwargs):
         super(IncomeListItem, self).__init__(**kwargs)
         self.app = App.get_running_app()
+
 
 class IncomeListItemLeft(MDLabel, IRightBody):
     pass
@@ -33,14 +37,14 @@ class IncomeScreen(Screen):
             ['menu', lambda x: self.app.root.toggle_nav_drawer()], ]
 
         toolbar.right_action_items = [
-            ['cash-usd', lambda x: self.app.root.switch_to('newincome')],]
+            ['cash-usd', lambda x: self.app.root.switch_to('newincome')], ]
 
     @db_session
     def populate_listview(self):
         self.scrollview = ScrollView(do_scroll_x=False)
         income_lv = MDList(id='income_lv')
 
-        for t in select(t for t in Ticket if t.type == 'income').order_by(
+        for t in select(t for t in Ticket if t.ttype == 'income').order_by(
                 Ticket.pubdate)[:]:
             item = IncomeListItem(title=t.title, secondary_text=t.description)
             item.add_widget(IncomeListItemLeft(text=str(t.tvalue)))
@@ -51,6 +55,7 @@ class IncomeScreen(Screen):
 
     def show_datepicker(self, value):
         print(value)
+
 
 # class ViewIncomeScreen(Screen):
 #     uuid = ObjectProperty()
@@ -114,16 +119,48 @@ class IncomeScreen(Screen):
 #         app.root.switch_to('contacts')
 
 
-class MyCheckBox(MDCheckbox):
-    def __init__(self, **kwargs):
-        super(MyCheckBox, self).__init__(**kwargs)
+class ChooseContactItem(OneLineListItem):
+    uuid = ObjectProperty()
+    icon = StringProperty()
+    name = StringProperty()
 
-    def on_active(self, instance, value):
-        super(MyCheckBox, self).on_active(instance, value)
+    def __init__(self, **kwargs):
+        super(ChooseContactItem, self).__init__(**kwargs)
+        self.uuid = kwargs.get('uuid')
+        self.name = kwargs.get('name')
+
+        self.text = self.name
+
+    def on_release(self):
+        app = App.get_running_app()
+        cur_screen = app.root.ids.scr_mngr.current_screen
+        cur_screen.contact = self.uuid, self.name
+        cur_screen.dialog.dismiss()
+
+
+class ChooseUserDialog(MDDialog):
+    def __init__(self, **kwargs):
+        super(ChooseUserDialog, self).__init__(**kwargs)
+
+        self.listbox = MDList(id='userList')
+
+        self.content = self.listbox
+
+        self.load_contacts()
+        self.add_action_button(text="Dismiss",
+                               action=lambda *x: self.dismiss())
+
+    def load_contacts(self, ):
+        with db_session:
+            contacts = select(c for c in Contact).order_by(Contact.name)[:]
+
+            for c in contacts:
+                self.listbox.add_widget(
+                    ChooseContactItem(uuid=c.uuid, icon=c.photo, name=c.name))
+
 
 class NewIncomeScreen(Screen):
-
-
+    contact = ListProperty()
 
     def __init__(self, **kwargs):
         super(NewIncomeScreen, self).__init__(**kwargs)
@@ -132,17 +169,16 @@ class NewIncomeScreen(Screen):
     def on_pre_enter(self, *args):
         toolbar = self.app.root.ids.toolbar
         toolbar.left_action_items = [
-            ['menu', lambda x: self.app.root.toggle_nav_drawer()],]
+            ['menu', lambda x: self.app.root.toggle_nav_drawer()], ]
         toolbar.right_action_items = [
             ['check', lambda x: self.save_contact()],
-            ['close', lambda x: self.app.root.switch_to('incomes')],]
+            ['close', lambda x: self.app.root.switch_to('incomes')], ]
 
     def change_check(self, name):
         if name == 'chk_despesa':
             print(self.ids[name].active, 'despesa')
         elif name == 'chk_receita':
             print(self.ids[name].active, 'receita')
-
 
     def show_datepicker(self, value):
         self.mywidget = self.ids[value]
@@ -151,22 +187,142 @@ class NewIncomeScreen(Screen):
     def set_date(self, data_obj):
         self.mywidget.text = str(data_obj)
 
-    def save_contact(self):
-        try:
-            with db_session:
+    def show_choose_contact_dialog(self):
 
-                validate=self.ids.validate.text,
+        # sv = ScrollView()
+        ml = MDList()
+        # sv.add_widget(ml)
 
-                ticket = Ticket(
-                    title=self.ids.title.text,
-                    description=self.ids.description.text,
-                    pubdate=self.ids.pubdate.text,
+        with db_session:
+            for c in select(c for c in Contact).order_by(Contact.name)[:]:
+                ml.add_widget(
+                    ChooseContactItem(
+                        uuid=c.uuid, name=c.name
+                    )
                 )
 
-            self.app.root.switch_to('incomes')
-        except Exception as err:
-            print err
+        self.dialog = MDDialog(title="Choose a Contact.", content=ml)
+        self.dialog.add_action_button(text="Dismiss",
+                                      action=lambda *x: self.dialog.dismiss())
+        self.dialog.open()
 
+    def on_contact(self, instance, value):
+        contact_name = self.ids.contact_name
+        contact_name.text = self.contact[1]
+
+    @db_session
+    def save_contact(self):
+
+        # List of errors
+        errors = []
+
+        # Getting data of fields
+        title = self.ids.title.text
+        description = self.ids.description.text
+        pubdate = self.ids.pubdate.text
+        expiration = self.ids.expiration.text
+        value = Decimal(self.ids.value.text).quantize(Decimal('1.00'),
+                                                      rounding=ROUND_DOWN)
+        parcels = int(self.ids.parcels.text)
+        ttype = 'receita' if self.ids.switch.active else 'despesa'
+        contact = self.contact[0] if self.contact else None
+
+        # Validating fields
+        if title == '':
+            errors.append("Field 'Title' is required!")
+
+        if pubdate == '':
+            errors.append("Field 'Pubdate' is required!")
+
+        else:
+            try:
+                pubdate = date(
+                    *[int(f) for f in self.ids.pubdate.text.split('-')])
+
+            except:
+                errors.append(
+                    "Invalid format for 'Pubdate' field! must be 'yyyy-mm-dd'.")
+
+        if expiration == '':
+            errors.append("Field 'Validate' is required!")
+
+        else:
+            try:
+                expiration = date(
+                    *[int(f) for f in self.ids.expiration.text.split('-')])
+
+            except:
+                errors.append(
+                    "Invalid format for 'Expiration' field! must be 'yyyy-mm-dd'.")
+
+        try:
+            diferenca = expiration - pubdate
+            if diferenca.days < 0:
+                errors.append(
+                    "Expiration can not be less than the date of Pubdate.")
+
+        except:
+            pass
+
+        if value < 0:
+            errors.append("Field 'Value' can not be less than 0.")
+
+        if parcels < 1:
+            errors.append("Field 'Parcels' can not be less than 1!")
+
+        if contact:
+            contact = Contact.get(uuid=contact)
+
+        # Showing dialog with errors found
+        if errors:
+            dialog = MDDialog(title='Errors', size_hint=(.9, .8))
+            box = StackLayout(size_hint_y=None)
+            for e in errors:
+                box.add_widget(MDLabel(
+                    text=e, size_hint_y=None, height='48dp',
+                    font_size='18dp', theme_text_color='Error'))
+
+            dialog.content = box
+            dialog.add_action_button(
+                'Close', action=lambda *x: dialog.dismiss())
+            dialog.open()
+
+        else:
+            try:
+                # Creating a Ticket
+                parcels = parcels
+                value = value
+
+                parcel_value = (value / parcels).quantize(Decimal('1.00'),
+                                                          rounding=ROUND_DOWN)
+                excedent = (value - (parcel_value * parcels)).quantize(
+                    Decimal('1.00'), rounding=ROUND_DOWN)
+
+                ticket = Ticket(
+                    title=title, description=description, tvalue=value,
+                    pubdate=pubdate, nparcels=parcels, ttype=ttype,
+                    contact=contact)
+
+                # Creating Parcels of the Ticket
+                if parcels == 1:
+                    ticket.parcels.create(
+                        title="%s %d/%d" % (title, 1, parcels),
+                        value=value, expiration=expiration)
+
+                else:
+                    for p in range(parcels):
+                        if p == parcels - 1:
+                            parcel_value += excedent
+
+                        ticket.parcels.create(
+                            title="%s %d/%d" % (title, p + 1, parcels),
+                            value=parcel_value, expiration=expiration)
+
+                # Changing to IncomeList
+                self.app.root.switch_to('incomes')
+            except Exception as err:
+                rollback()
+                print str(err)
 
 # class EditContactScreen(Screen):
 #     uuid = ObjectProperty()

@@ -16,20 +16,19 @@ from pony.orm import db_session, select, delete
 
 
 class ContactScreen(Screen):
-
     def __init__(self, **kwargs):
         super(ContactScreen, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.populate_listview()
 
-
     def on_pre_enter(self, *args):
         toolbar = self.app.root.ids.toolbar
         toolbar.left_action_items = [
-            ['menu', lambda x: self.app.root.toggle_nav_drawer()],]
+            ['menu', lambda x: self.app.root.toggle_nav_drawer()], ]
 
         toolbar.right_action_items = [
-            ['account-plus', lambda x: self.app.root.switch_to('newcontact')],]
+            ['account-plus',
+             lambda x: self.app.root.switch_to('newcontact')], ]
 
     @db_session
     def populate_listview(self):
@@ -68,7 +67,8 @@ class ViewContactScreen(Screen):
             ['arrow-left', lambda x: self.app.root.switch_to('contacts')]]
 
         toolbar.right_action_items = [
-            ['pencil', lambda x: self.app.root.switch_to('editcontact', uuid=self.uuid)],
+            ['pencil',
+             lambda x: self.app.root.switch_to('editcontact', uuid=self.uuid)],
             ['delete', lambda x: self.delete_contact()]]
 
     @db_session
@@ -124,10 +124,10 @@ class NewContactScreen(Screen):
     def on_pre_enter(self, *args):
         toolbar = self.app.root.ids.toolbar
         toolbar.left_action_items = [
-            ['menu', lambda x: self.app.root.toggle_nav_drawer()],]
+            ['menu', lambda x: self.app.root.toggle_nav_drawer()], ]
         toolbar.right_action_items = [
             ['check', lambda x: self.save_contact()],
-            ['close', lambda x: self.app.root.switch_to('contacts')],]
+            ['close', lambda x: self.app.root.switch_to('contacts')], ]
 
     def add_photo(self, *args):
         pass
@@ -140,7 +140,10 @@ class NewContactScreen(Screen):
         try:
             with db_session:
 
-                photo = self.ids.photo.source or os.path.join(self.app.basedir, 'assets', 'images', 'avatar.jpg')
+                photo = self.ids.photo.source or os.path.join(self.app.basedir,
+                                                              'assets',
+                                                              'images',
+                                                              'avatar.jpg')
 
                 self.photo = photo
                 self.c_name = self.ids.name.text
@@ -175,11 +178,12 @@ class EditContactScreen(Screen):
     def on_pre_enter(self, *args):
         toolbar = self.app.root.ids.toolbar
         toolbar.left_action_items = [
-            ['menu', lambda x: self.app.root.toggle_nav_drawer()],]
+            ['menu', lambda x: self.app.root.toggle_nav_drawer()], ]
 
         toolbar.right_action_items = [
             ['check', lambda x: self.save_contact()],
-            ['close',lambda x: self.app.root.switch_to('viewcontact', uuid=self.uuid)],]
+            ['close', lambda x: self.app.root.switch_to('viewcontact',
+                                                        uuid=self.uuid)], ]
 
     def load_contact(self):
         with db_session:
@@ -197,7 +201,8 @@ class EditContactScreen(Screen):
         content.add_widget(MDIconButton(icon='image-multiple'))
 
         self.dialog = MDDialog(title='Choose font of image!', content=content)
-        self.dialog.add_action_button('Cancel', action=lambda *x: self.dialog.dismiss())
+        self.dialog.add_action_button('Cancel',
+                                      action=lambda *x: self.dialog.dismiss())
         self.dialog.open()
 
     def save_contact(self):

@@ -228,8 +228,8 @@
 
 
 <MyCheckBox>:
-	size_hint: None, None
-	size: '24dp', '24dp'
+    size_hint: None, None
+    size: '24dp', '24dp'
 
 
 <NewIncomeScreen>:
@@ -246,6 +246,7 @@
             MDTextField:
                 id: title
                 hint_text: "Name: "
+                required: True
 
             MDTextField:
                 id: description
@@ -257,7 +258,9 @@
                 height: self.minimum_height
                 MDTextField:
                     id: pubdate
-                    hint_text: 'Date:'
+                    hint_text: 'Date: '
+                    required: True
+#                    text: datetime.now()
 
                 MDIconButton:
                     size_hint: None, None
@@ -268,13 +271,15 @@
                 size_hint_y: None
                 height: self.minimum_height
                 MDTextField:
-                    id: validate
-                    hint_text: 'Validate: '
+                    id: expiration
+                    hint_text: 'Expiration: '
+                    required: True
+#                    text: datetime.now().today()
 
                 MDIconButton:
                     size_hint: None, None
                     icon: 'calendar'
-                    on_press: root.show_datepicker('validate')
+                    on_press: root.show_datepicker('expiration')
 
             BoxLayout:
                 size_hint_y: None
@@ -283,54 +288,72 @@
 
                 MDTextField:
                     id: value
-                    hint_text: "Value:"
+                    hint_text: "Value: "
+                    input_filter: 'float'
+                    input_type: 'number'
+                    required: True
+                    text: '0'
 
                 MDTextField:
                     id: parcels
                     hint_text: "Parcels:"
                     size_hint_x: None
                     width: '100dp'
-
-            BoxLayout:
-            	size_hint_y: None
-            	height: self.minimum_height
-            	spacing: '10dp'
-            	MDSwitch:
-            		id: switch
-            		size_hint:    None, None
-                    size:        dp(36), dp(48)
-                    pos_hint:    {'center_x': 0.75, 'center_y': 0.5}
-                    _active:        False
-                    on_active: type_ticket.text = 'Receita' if self.active else 'Despesa'
-
-                MDLabel:
-                	id: type_ticket
-                    font_style: 'Caption'
-                    font_size: '16dp'
-                    text: 'Receita'
+                    required: True
+                    input_filter: 'int'
+                    text: '1'
 
             BoxLayout:
                 size_hint_y: None
                 height: self.minimum_height
-                spacing: '10dp'
-
-                MDCheckbox:
-                    id: chk_receita
-                    group: 'test'
+                spacing: dp(10)
 
                 MDLabel:
+                    id: type_ticket
                     font_style: 'Caption'
                     font_size: '16dp'
                     text: 'Receita'
+                    disabled: False if switch.active else True
+                    size_hint_x: .4
+                    size_hint_y: None
+                    halign: 'center'
+                    height: '24dp'
 
-                MDCheckbox:
-                    id: chk_despesa
-                    group: 'test'
+                MDSwitch:
+                    id: switch
+                    size_hint: None, None
+                    size: '48dp', '24dp'
+                    height: '24dp'
 
                 MDLabel:
+                    id: type_ticket
                     font_style: 'Caption'
                     font_size: '16dp'
                     text: 'Despesa'
+                    disabled: True if switch.active else False
+                    size_hint_x: .4
+                    size_hint_y: None
+                    halign: 'center'
+                    height: '24dp'
+
+            BoxLayout:
+                size_hint_y: None
+                height: self.minimum_height
+                MDTextField:
+                    id: contact_name
+                    hint_text: 'Contact:'
+                    disabled: True
+
+                MDIconButton:
+                    size_hint: None, None
+                    icon: 'account-box-outline'
+                    on_press: root.show_choose_contact_dialog()
+
+
+
+
+<ChooseUserDialog>:
+    size_hint: .85, .95
 
 
 <EditIncomeScreen>:
