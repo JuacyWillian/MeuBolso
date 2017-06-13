@@ -50,6 +50,7 @@ class Parcel(db.Entity):
     ticket = Required('Ticket')
     expiration = Required(date)
     value = Required(Decimal)
+    paid = Required(bool, default=False)
 
     def __init__(self, title, value, expiration, ticket):
         fields = dict(

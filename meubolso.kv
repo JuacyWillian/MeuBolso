@@ -18,6 +18,7 @@
 <ContactListItem>:
     on_press: self.select_contact()
 
+
 <ContactHeaderWidget>:
     orientation: 'vertical'
     size_hint_y: None
@@ -50,6 +51,7 @@
         size_hint_y: None
         height: root.grid_height
 
+
 <ContactEmailWidget>:
     orientation: 'vertical'
     size_hint_y: None
@@ -63,6 +65,7 @@
         cols:2
         size_hint_y: None
         height: root.grid_height
+
 
 <ContactPhoneWidget>:
     orientation: 'vertical'
@@ -79,6 +82,7 @@
         size_hint_y: None
         height: root.grid_height
 
+
 <HomeScreen>:
     name: 'home'
     on_pre_enter: self.before_load()
@@ -86,8 +90,10 @@
     MDLabel:
         text: 'Hello Home Screen'
 
+
 <ContactScreen>:
     name: 'contacts'
+
 
 <NewContactScreen>:
     name: 'newcontact'
@@ -187,6 +193,7 @@
                 hint_text: 'Address: '
                 text: root.address if root.address is not None else ''
 
+
 <ViewContactScreen>:
     ScrollView:
         do_scroll_x: False
@@ -260,7 +267,6 @@
                     id: pubdate
                     hint_text: 'Date: '
                     required: True
-#                    text: datetime.now()
 
                 MDIconButton:
                     size_hint: None, None
@@ -274,7 +280,6 @@
                     id: expiration
                     hint_text: 'Expiration: '
                     required: True
-#                    text: datetime.now().today()
 
                 MDIconButton:
                     size_hint: None, None
@@ -346,9 +351,149 @@
 
                 MDIconButton:
                     size_hint: None, None
+                    icon: 'close'
+                    on_press: root.contact = []
+
+                MDIconButton:
+                    size_hint: None, None
                     icon: 'account-box-outline'
                     on_press: root.show_choose_contact_dialog()
 
+
+<ParcelWidget>:
+    orientation: 'vertical'
+    size_hint_y: None
+    height: '50dp'
+    
+    MDLabel:
+        id: parcel_title
+        font_style: 'Caption'
+#        size_hint_y: None
+#        height: '25dp'
+        text: root.title
+        bold: True
+        
+    BoxLayout:
+    	padding: [0,0,0,15]
+        MDLabel:
+            id: parcel_expiration
+            font_style: 'Caption'
+            text: "Expiration: %s"%root.expiration
+            size_hint: .4, None
+            height: '25dp'
+
+        MDLabel:
+            id: parcel_value
+            font_style: 'Caption'
+            text: "R$ %s" % root.value
+            size_hint: .3, None
+            height: '25dp'
+
+        MDCheckbox:
+        	id: parcel_paid
+        	active: root.paid
+            size_hint: .05, None
+            height: self.width
+
+        MDLabel:
+            id: parcel_paid
+            font_style: 'Caption'
+            halign: 'center'
+            text: 'paid' if root.paid else 'not paid'
+            size_hint: .15, None
+            height: '25dp'
+
+
+<ViewIncomeScreen>:
+    name: 'newincome'
+    ScrollView:
+        do_scroll_x: False
+
+        StackLayout:
+            size_hint_y: None
+            height: self.minimum_height
+            #orientation: 'vertical'
+            padding: '10dp'
+            spacing: '5dp'
+
+            MDLabel:
+                id: title
+                font_style: 'Title'
+                text: root.ttitle
+                size_hint_y: None
+                height: dp(60)
+
+            MDLabel:
+                id: description
+                text: root.tdescription
+                font_style: 'Body1'
+                size_hint_y: None
+
+            GridLayout:
+                cols: 2
+                size_hint_y: None
+                height: dp(160)
+                spacing: dp(5)
+                row_force_default: True
+                row_default_height: '20dp'
+                padding: [0,15,0,5]
+
+                MDLabel:
+                    size_hint_x: None
+                    text: 'Date: '
+                    font_style: 'Caption'
+
+                MDLabel:
+                    id: pubdate
+                    text: root.tpubdate
+                    font_style: 'Caption'
+
+                MDLabel:
+                    size_hint_x: None
+                    text: 'Total Value: '
+                    font_style: 'Caption'
+
+                MDLabel:
+                    id: pubdate
+                    text: str(root.tvalue)
+                    font_style: 'Caption'
+
+                MDLabel:
+                    size_hint_x: None
+                    text: 'Parcel Number: '
+                    font_style: 'Caption'
+
+                MDLabel:
+                    id: pubdate
+                    text: str(root.tnparcels)
+                    font_style: 'Caption'
+
+                MDLabel:
+                    size_hint_x: None
+                    text: 'Type: '
+                    font_style: 'Caption'
+
+                MDLabel:
+                    id: pubdate
+                    text: root.ttype
+                    font_style: 'Caption'
+
+                MDLabel:
+                    size_hint_x: None
+                    text: 'Contact: '
+                    font_style: 'Caption'
+
+                MDLabel:
+                    id: pubdate
+#                    text: root.contact.name if root.contact is not None else ''
+                    font_style: 'Caption'
+
+            BoxLayout:
+                size_hint_y: None
+                orientation: 'vertical'
+                height: self.minimum_height
+                spacing: dp(5)
+                id: parcel_list
 
 
 
@@ -360,11 +505,13 @@
     name: 'editincome'
     on_pre_enter: self.before_load()
 
+
 <SettingsScreen>:
     name: 'settings'
     on_pre_enter: self.before_load()
     MDLabel:
         text: 'settings'
+
 
 <AboutScreen>:
     name: 'about'
@@ -375,9 +522,12 @@
         text_size: root.width, None
         size: self.texture_size
 
+
 <MyScreenManager>:
 
+
 <MyRootLayout@NavigationLayout>:
+
 
 MyRootLayout:
     MDNavigationDrawer:

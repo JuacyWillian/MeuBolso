@@ -25,6 +25,4 @@ class ContactListItem(OneLineAvatarIconListItem):
 
     def select_contact(self, ):
         app = App.get_running_app()
-
-        with db_session:
-            app.root.switch_to('viewcontact', uuid=self.uuid)
+        app.root.switch_to('viewcontact', uuid=self.uuid)

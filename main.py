@@ -4,7 +4,7 @@ from kivymd.theming import ThemeManager
 
 from app.models import db
 from app.views.contact_views import *
-from app.views.incomes import IncomeScreen, NewIncomeScreen
+from app.views.incomes import IncomeScreen, NewIncomeScreen, ViewIncomeScreen
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -126,6 +126,10 @@ class MyRootLayout(NavigationLayout):
 
         elif screen_name == 'newincome':
             self.ids.scr_mngr.switch_to(NewIncomeScreen(name=screen_name))
+
+        elif screen_name == 'viewincome':
+            uuid = kwargs.get('uuid', None)
+            self.ids.scr_mngr.switch_to(ViewIncomeScreen(name=screen_name, uuid=uuid))
 
         elif screen_name == 'settings':
             self.ids.scr_mngr.switch_to(SettingsScreen(name=screen_name))

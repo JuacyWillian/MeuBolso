@@ -2,26 +2,34 @@ from datetime import date
 from decimal import Decimal, ROUND_DOWN
 
 from app.models import *
+from dateutil.relativedelta import relativedelta
 from kivy.app import App
-from kivy.properties import ObjectProperty, StringProperty, ListProperty
+from kivy.properties import ObjectProperty, StringProperty, ListProperty, \
+    NumericProperty, BooleanProperty
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import Screen
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.stacklayout import StackLayout
 from kivymd.date_picker import MDDatePicker
 from kivymd.dialog import MDDialog
 from kivymd.label import MDLabel
-from kivymd.list import MDList, ThreeLineListItem, IRightBody, \
-    OneLineListItem
-from pony.orm import db_session, select, rollback
+from kivymd.list import MDList, IRightBody, \
+    OneLineListItem, ThreeLineListItem
+from kivymd.selectioncontrols import MDCheckbox
+from pony.orm import db_session, select, rollback, delete
 
 
 class IncomeListItem(ThreeLineListItem):
     def __init__(self, **kwargs):
         super(IncomeListItem, self).__init__(**kwargs)
         self.app = App.get_running_app()
+        self.uuid = kwargs.get('uuid', None)
+
+    def on_release(self):
+        self.app.root.switch_to('viewincome', uuid=self.uuid)
 
 
-class IncomeListItemLeft(MDLabel, IRightBody):
+class IncomeListItemRight(IRightBody, MDCheckbox):
     pass
 
 
@@ -44,79 +52,116 @@ class IncomeScreen(Screen):
         self.scrollview = ScrollView(do_scroll_x=False)
         income_lv = MDList(id='income_lv')
 
-        for t in select(t for t in Ticket if t.ttype == 'income').order_by(
-                Ticket.pubdate)[:]:
-            item = IncomeListItem(title=t.title, secondary_text=t.description)
-            item.add_widget(IncomeListItemLeft(text=str(t.tvalue)))
+        today = date.today()
+        for p in select(p for p in Parcel if (
+                p.expiration.year == today.year \
+                and p.expiration.month == today.month)\
+                or (p.paid == False and p.expiration < today))\
+                           .order_by(Parcel.expiration)[:]:
+            text = p.title
+            secontary_text = "%s\nR$ %.2f" % (
+                p.expiration.strftime("%Y-%m-%d"), p.value)
+
+            item = IncomeListItem(
+                text=text, secondary_text=secontary_text, uuid=p.uuid)
+            # item.add_widget(IncomeListItemRight())
             income_lv.add_widget(item)
 
         self.scrollview.add_widget(income_lv)
         self.add_widget(self.scrollview)
 
-    def show_datepicker(self, value):
-        print(value)
+
+class ParcelWidget(BoxLayout):
+    title = StringProperty()
+    expiration = StringProperty()
+    value = StringProperty()
+    paid = BooleanProperty()
 
 
-# class ViewIncomeScreen(Screen):
-#     uuid = ObjectProperty()
-#     phone = StringProperty()
-#     c_name = StringProperty()
-#     phone = StringProperty()
-#     email = StringProperty()
-#     address = StringProperty()
-#
-#     def __init__(self, **kwargs):
-#         super(ViewIncomeScreen, self).__init__(**kwargs)
-#         self.uuid = kwargs.get('uuid', None)
-#         self.app = App.get_running_app()
-#         self.load_contact()
-#
-#     def on_pre_enter(self, *args):
-#         toolbar = self.app.root.ids['toolbar']
-#         toolbar.left_action_items = [
-#             ['arrow-left', lambda x: self.app.root.switch_to('contacts')]]
-#
-#         toolbar.right_action_items = [
-#             ['pencil', lambda x: self.app.root.switch_to('editcontact', uuid=self.uuid)],
-#             ['delete', lambda x: self.delete_contact()]]
-#
-#     @db_session
-#     def load_contact(self):
-#         contact = Contact.get(uuid=self.uuid)
-#
-#         if contact is not None:
-#             self.ids.cheaderwidget.photo = contact.photo
-#             self.ids.cheaderwidget.name = contact.name
-#
-#             self.c_name = contact.name
-#             self.phone = contact.phone
-#             self.email = contact.email
-#             self.address = contact.address
-#
-#     def delete_contact(self):
-#         content = MDLabel(
-#             text="Are you sure you want to delete this user?",
-#             font_style='Caption', size_hint_y=None, valign='center')
-#
-#         self.dialog = MDDialog(
-#             title="Confirmation Dialog!", content=content,
-#             size_hint=(0.8, None), height=dp(300), auto_dismiss=False)
-#
-#         self.dialog.add_action_button(
-#             "confirm", action=lambda *x: self.confirm_delete())
-#
-#         self.dialog.add_action_button(
-#             "Dismiss", action=lambda *x: self.dialog.dismiss())
-#
-#         self.dialog.open()
-#
-#     def confirm_delete(self):
-#         self.dialog.dismiss()
-#         with db_session:
-#             delete(c for c in Contact if c.uuid == self.uuid)
-#
-#         app = App.get_running_app()
-#         app.root.switch_to('contacts')
+    def __init__(self, title, expiration, value, paid, **kwargs):
+        super(ParcelWidget, self).__init__(**kwargs)
+        self.title = title
+        self.expiration = expiration.strftime("%y-%m-%d")
+        self.value = str(value)
+        self.paid = paid
+
+
+class ViewIncomeScreen(Screen):
+    uuid = ObjectProperty()
+    ttitle = StringProperty()
+    tdescription = StringProperty()
+    tvalue = NumericProperty()
+    tcontact = ObjectProperty()
+    tcontactuuid = ObjectProperty()
+    tpubdate = StringProperty()
+    tnparcels = NumericProperty()
+    ttype = StringProperty()
+    parcels = ListProperty()
+
+    def __init__(self, **kwargs):
+        super(ViewIncomeScreen, self).__init__(**kwargs)
+        self.uuid = kwargs.get('uuid', None)
+        self.app = App.get_running_app()
+        self.load_ticket()
+
+    def on_pre_enter(self, *args):
+        toolbar = self.app.root.ids['toolbar']
+        toolbar.left_action_items = [
+            ['arrow-left', lambda x: self.app.root.switch_to('incomes')]]
+
+        toolbar.right_action_items = [
+            ['pencil',
+             lambda x: self.app.root.switch_to('editincome', uuid=self.uuid)],
+            ['delete', lambda x: self.remove()]]
+
+    @db_session
+    def load_ticket(self):
+        ticket = Parcel.get(uuid=self.uuid).ticket
+
+        if ticket:
+            self.uuid = ticket.uuid
+            self.ttitle = ticket.title
+            self.tdescription = ticket.description
+            self.tvalue = ticket.tvalue
+            self.tcontact = ticket.contact
+            self.tpubdate = ticket.pubdate.strftime("%Y-%m-%d")
+            self.tnparcels = ticket.nparcels
+            self.ttype = ticket.ttype
+            self.parcels = select(p for p in Parcel if p.ticket == ticket) \
+                               .order_by(Parcel.expiration)[:]
+
+            parcel_list = self.ids.parcel_list
+            for p in self.parcels:
+
+                item = ParcelWidget(p.title, p.expiration, p.value, False)
+                parcel_list.add_widget(item)
+
+    def remove(self):
+        content = StackLayout()
+        content.add_widget(
+            MDLabel(
+                text="Are you sure you want to delete this ticket?",
+                font_style='Caption', size_hint_y=None, valign='center'))
+
+        self.dialog = MDDialog(
+            title="Confirmation Dialog!", content=content,
+            size_hint=(.8, .9), auto_dismiss=False)
+
+        self.dialog.add_action_button(
+            "confirm", action=lambda *x: self.confirm_delete())
+
+        self.dialog.add_action_button(
+            "Dismiss", action=lambda *x: self.dialog.dismiss())
+
+        self.dialog.open()
+
+    def confirm_delete(self):
+        self.dialog.dismiss()
+        with db_session:
+            delete(t for t in Ticket if t.uuid == self.uuid)
+
+        app = App.get_running_app()
+        app.root.switch_to('incomes')
 
 
 class ChooseContactItem(OneLineListItem):
@@ -208,7 +253,10 @@ class NewIncomeScreen(Screen):
 
     def on_contact(self, instance, value):
         contact_name = self.ids.contact_name
-        contact_name.text = self.contact[1]
+        if value:
+            contact_name.text = self.contact[1]
+        else:
+            contact_name.text = ''
 
     @db_session
     def save_contact(self):
@@ -313,10 +361,10 @@ class NewIncomeScreen(Screen):
                     for p in range(parcels):
                         if p == parcels - 1:
                             parcel_value += excedent
-
+                        nExpiration = expiration + relativedelta(months=p)
                         ticket.parcels.create(
                             title="%s %d/%d" % (title, p + 1, parcels),
-                            value=parcel_value, expiration=expiration)
+                            value=parcel_value, expiration=nExpiration)
 
                 # Changing to IncomeList
                 self.app.root.switch_to('incomes')
