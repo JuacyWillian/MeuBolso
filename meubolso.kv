@@ -299,6 +299,13 @@
                     required: True
                     text: '0'
 
+                MDCheckbox:
+                    id: parcelamento
+                    size_hint_x: None #, None
+                    size: '24dp', '24dp'
+                    active: False
+
+
                 MDTextField:
                     id: parcels
                     hint_text: "Parcels:"
@@ -307,6 +314,37 @@
                     required: True
                     input_filter: 'int'
                     text: '1'
+                    disabled: False if parcelamento.active else True
+
+            BoxLayout:
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: '10dp'
+
+                MDTextField:
+                    id: value
+                    hint_text: "Value: "
+                    input_filter: 'float'
+                    input_type: 'number'
+                    required: True
+                    text: '0'
+
+                MDCheckbox:
+                    id: parcelamento
+                    size_hint_x: None #, None
+                    size: '24dp', '24dp'
+                    active: False
+
+
+                MDTextField:
+                    id: parcels
+                    hint_text: "Parcels:"
+                    size_hint_x: None
+                    width: '100dp'
+                    required: True
+                    input_filter: 'int'
+                    text: '1'
+                    disabled: False if parcelamento.active else True
 
             BoxLayout:
                 size_hint_y: None
@@ -374,7 +412,7 @@
         bold: True
         
     BoxLayout:
-    	padding: [0,0,0,15]
+        padding: [0,0,0,15]
         MDLabel:
             id: parcel_expiration
             font_style: 'Caption'
@@ -390,8 +428,8 @@
             height: '25dp'
 
         MDCheckbox:
-        	id: parcel_paid
-        	active: root.paid
+            id: parcel_paid
+            active: root.paid
             size_hint: .05, None
             height: self.width
 
