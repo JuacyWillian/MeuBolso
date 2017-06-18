@@ -1,21 +1,26 @@
 import os
 
 from app.models import *
+from app.util import SCREENS
 from app.views.widgets import ContactPhoto, ContactListItem
+
 from kivy.app import App
 from kivy.metrics import dp
 from kivy.properties import *
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import Screen
 from kivy.uix.scrollview import ScrollView
+
 from kivymd.button import MDIconButton
 from kivymd.dialog import MDDialog
 from kivymd.label import MDLabel
 from kivymd.list import MDList
+
 from pony.orm import db_session, select, delete
 
 
 class ContactScreen(Screen):
+
     def __init__(self, **kwargs):
         super(ContactScreen, self).__init__(**kwargs)
         self.app = App.get_running_app()
@@ -28,7 +33,7 @@ class ContactScreen(Screen):
 
         toolbar.right_action_items = [
             ['account-plus',
-             lambda x: self.app.root.switch_to('newcontact')], ]
+             lambda x: self.app.root.switch_to(SCREENS.NEW_CONTACT)], ]
 
     @db_session
     def populate_listview(self):
@@ -47,7 +52,6 @@ class ContactScreen(Screen):
 
 class ViewContactScreen(Screen):
     cheaderwidget = ObjectProperty()
-
     uuid = ObjectProperty()
     phone = StringProperty()
     c_name = StringProperty()
@@ -64,11 +68,11 @@ class ViewContactScreen(Screen):
     def on_pre_enter(self, *args):
         toolbar = self.app.root.ids['toolbar']
         toolbar.left_action_items = [
-            ['arrow-left', lambda x: self.app.root.switch_to('contacts')]]
+            ['arrow-left', lambda x: self.app.root.switch_to(SCREENS.CONTACT_LIST)]]
 
         toolbar.right_action_items = [
             ['pencil',
-             lambda x: self.app.root.switch_to('editcontact', uuid=self.uuid)],
+             lambda x: self.app.root.switch_to(SCREENS.EDIT_CONTACT, uuid=self.uuid)],
             ['delete', lambda x: self.delete_contact()]]
 
     @db_session
@@ -107,7 +111,7 @@ class ViewContactScreen(Screen):
             delete(c for c in Contact if c.uuid == self.uuid)
 
         app = App.get_running_app()
-        app.root.switch_to('contacts')
+        app.root.switch_to(SCREENS.CONTACT_LIST)
 
 
 class NewContactScreen(Screen):
@@ -127,7 +131,7 @@ class NewContactScreen(Screen):
             ['menu', lambda x: self.app.root.toggle_nav_drawer()], ]
         toolbar.right_action_items = [
             ['check', lambda x: self.save_contact()],
-            ['close', lambda x: self.app.root.switch_to('contacts')], ]
+            ['close', lambda x: self.app.root.switch_to(SCREENS.CONTACT_LIST)], ]
 
     def add_photo(self, *args):
         pass
@@ -139,11 +143,8 @@ class NewContactScreen(Screen):
     def save_contact(self):
         try:
             with db_session:
-
-                photo = self.ids.photo.source or os.path.join(self.app.basedir,
-                                                              'assets',
-                                                              'images',
-                                                              'avatar.jpg')
+                photo = self.ids.photo.source or os.path.join(
+                    self.app.basedir, 'assets', 'images', 'avatar.jpg')
 
                 self.photo = photo
                 self.c_name = self.ids.name.text
@@ -155,9 +156,9 @@ class NewContactScreen(Screen):
                     name=self.c_name, photo=self.photo, phone=self.phone,
                     email=self.email, address=self.address)
 
-            self.app.root.switch_to('contacts')
+            self.app.root.switch_to(SCREENS.CONTACT_LIST)
         except Exception as err:
-            print err
+            raise err
 
 
 class EditContactScreen(Screen):
@@ -182,7 +183,7 @@ class EditContactScreen(Screen):
 
         toolbar.right_action_items = [
             ['check', lambda x: self.save_contact()],
-            ['close', lambda x: self.app.root.switch_to('viewcontact',
+            ['close', lambda x: self.app.root.switch_to(SCREENS.CONTACT_LIST,
                                                         uuid=self.uuid)], ]
 
     def load_contact(self):
@@ -219,7 +220,7 @@ class EditContactScreen(Screen):
                 contact.email = self.ids.email.text
                 contact.address = self.ids.address.text
 
-            self.app.root.switch_to('viewcontact', uuid=self.uuid)
+            self.app.root.switch_to(SCREENS.VIEW_CONTACT, uuid=self.uuid)
 
         except Exception as err:
             print (err)

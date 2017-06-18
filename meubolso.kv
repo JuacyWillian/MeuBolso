@@ -13,6 +13,7 @@
 #:import MDTextField kivymd.textfields.MDTextField
 #:import MDIconButton kivymd.button.MDIconButton
 #:import MDCheckbox kivymd.selectioncontrols.MDCheckbox
+#:import SCREENS app.util.SCREENS
 
 
 <ContactListItem>:
@@ -406,8 +407,6 @@
     MDLabel:
         id: parcel_title
         font_style: 'Caption'
-#        size_hint_y: None
-#        height: '25dp'
         text: root.title
         bold: True
         
@@ -450,7 +449,6 @@
         StackLayout:
             size_hint_y: None
             height: self.minimum_height
-            #orientation: 'vertical'
             padding: '10dp'
             spacing: '5dp'
 
@@ -523,7 +521,6 @@
 
                 MDLabel:
                     id: pubdate
-#                    text: root.contact.name if root.contact is not None else ''
                     font_style: 'Caption'
 
             BoxLayout:
@@ -532,7 +529,6 @@
                 height: self.minimum_height
                 spacing: dp(5)
                 id: parcel_list
-
 
 
 <ChooseUserDialog>:
@@ -561,12 +557,6 @@
         size: self.texture_size
 
 
-<MyScreenManager>:
-
-
-<MyRootLayout@NavigationLayout>:
-
-
 MyRootLayout:
     MDNavigationDrawer:
         id: nav_drawer
@@ -578,27 +568,27 @@ MyRootLayout:
         NavigationDrawerIconButton:
             icon: 'home'
             text: "Inicio"
-            on_release: root.switch_to('home')
+            on_release: root.switch_to(SCREENS.HOME)
 
         NavigationDrawerIconButton:
             icon: 'account-multiple'
             text: "Contacts"
-            on_release: root.switch_to('contacts')
+            on_release: root.switch_to(SCREENS.CONTACT_LIST)
 
         NavigationDrawerIconButton:
             icon: 'cash-multiple'
             text: "Cash Flow"
-            on_release: root.switch_to('incomes')
+            on_release: root.switch_to(SCREENS.TRANSACTION_LIST)
 
         NavigationDrawerIconButton:
             icon: 'settings'
             text: "Settings"
-            on_release: root.switch_to('settings')
+            on_release: root.switch_to(SCREENS.SETTINGS)
 
         NavigationDrawerIconButton:
             icon: 'help-circle'
             text: "About"
-            on_release: root.switch_to('about')
+            on_release: root.switch_to(SCREENS.ABOUT)
 
         NavigationDrawerIconButton:
             icon: 'exit-to-app'
@@ -613,6 +603,6 @@ MyRootLayout:
             title: "Meu Bolso"
             left_action_items: [['menu', lambda x: app.root.toggle_nav_drawer()]]
 
-        MyScreenManager:
+        ScreenManager:
             id: scr_mngr
             HomeScreen:

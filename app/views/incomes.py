@@ -2,7 +2,9 @@ from datetime import date
 from decimal import Decimal, ROUND_DOWN
 
 from app.models import *
+
 from dateutil.relativedelta import relativedelta
+
 from kivy.app import App
 from kivy.properties import ObjectProperty, StringProperty, ListProperty, \
     NumericProperty, BooleanProperty
@@ -10,13 +12,17 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import Screen
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.stacklayout import StackLayout
+
 from kivymd.date_picker import MDDatePicker
 from kivymd.dialog import MDDialog
 from kivymd.label import MDLabel
 from kivymd.list import MDList, IRightBody, \
     OneLineListItem, ThreeLineListItem
 from kivymd.selectioncontrols import MDCheckbox
+
 from pony.orm import db_session, select, rollback, delete
+
+from app.util import SCREENS
 
 
 class IncomeListItem(ThreeLineListItem):
@@ -26,7 +32,7 @@ class IncomeListItem(ThreeLineListItem):
         self.uuid = kwargs.get('uuid', None)
 
     def on_release(self):
-        self.app.root.switch_to('viewincome', uuid=self.uuid)
+        self.app.root.switch_to(SCREENS.VIEW_TRANSACTION, uuid=self.uuid)
 
 
 class IncomeListItemRight(IRightBody, MDCheckbox):
@@ -45,7 +51,7 @@ class IncomeScreen(Screen):
             ['menu', lambda x: self.app.root.toggle_nav_drawer()], ]
 
         toolbar.right_action_items = [
-            ['cash-usd', lambda x: self.app.root.switch_to('newincome')], ]
+            ['cash-usd', lambda x: self.app.root.switch_to(SCREENS.NEW_TRANSACTION)], ]
 
     @db_session
     def populate_listview(self):
@@ -107,11 +113,11 @@ class ViewIncomeScreen(Screen):
     def on_pre_enter(self, *args):
         toolbar = self.app.root.ids['toolbar']
         toolbar.left_action_items = [
-            ['arrow-left', lambda x: self.app.root.switch_to('incomes')]]
+            ['arrow-left', lambda x: self.app.root.switch_to(SCREENS.TRANSACTION_LIST)]]
 
         toolbar.right_action_items = [
             ['pencil',
-             lambda x: self.app.root.switch_to('editincome', uuid=self.uuid)],
+             lambda x: self.app.root.switch_to(SCREENS.EDIT_TRANSACTION, uuid=self.uuid)],
             ['delete', lambda x: self.remove()]]
 
     @db_session
@@ -161,7 +167,7 @@ class ViewIncomeScreen(Screen):
             delete(t for t in Ticket if t.uuid == self.uuid)
 
         app = App.get_running_app()
-        app.root.switch_to('incomes')
+        app.root.switch_to(SCREENS.TRANSACTION_LIST)
 
 
 class ChooseContactItem(OneLineListItem):
@@ -217,7 +223,7 @@ class NewIncomeScreen(Screen):
             ['menu', lambda x: self.app.root.toggle_nav_drawer()], ]
         toolbar.right_action_items = [
             ['check', lambda x: self.save_contact()],
-            ['close', lambda x: self.app.root.switch_to('incomes')], ]
+            ['close', lambda x: self.app.root.switch_to(SCREENS.TRANSACTION_LIST)], ]
 
     def change_check(self, name):
         if name == 'chk_despesa':
@@ -367,10 +373,10 @@ class NewIncomeScreen(Screen):
                             value=parcel_value, expiration=nExpiration)
 
                 # Changing to IncomeList
-                self.app.root.switch_to('incomes')
+                self.app.root.switch_to(SCREENS.TRANSACTION_LIST)
             except Exception as err:
                 rollback()
-                print str(err)
+                raise err
 
 # class EditContactScreen(Screen):
 #     uuid = ObjectProperty()
@@ -394,7 +400,7 @@ class NewIncomeScreen(Screen):
 #
 #         toolbar.right_action_items = [
 #             ['check', lambda x: self.save_contact()],
-#             ['close',lambda x: self.app.root.switch_to('viewcontact', uuid=self.uuid)],]
+#             ['close',lambda x: self.app.root.switch_to(SCREENS.VIEW_TRANSACTION, uuid=self.uuid)],]
 #
 #     def load_contact(self):
 #         with db_session:
@@ -429,7 +435,7 @@ class NewIncomeScreen(Screen):
 #                 contact.email = self.ids.email.text
 #                 contact.address = self.ids.address.text
 #
-#             self.app.root.switch_to('viewcontact', uuid=self.uuid)
+#             self.app.root.switch_to(SCREENS.VIEW_TRANSACTION, uuid=self.uuid)
 #
 #         except Exception as err:
 #             print (err)

@@ -1,3 +1,4 @@
 kivy
-kivymd
+git+https://gitlab.com/kivymd/kivymd.git
 pony
+python-dateutil
