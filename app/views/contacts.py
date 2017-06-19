@@ -1,28 +1,23 @@
 import os
 
-from app.models import *
-from app.util import SCREENS
-from app.views.widgets import ContactPhoto, ContactListItem
-
 from kivy.app import App
 from kivy.metrics import dp
 from kivy.properties import *
-from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import Screen
 from kivy.uix.scrollview import ScrollView
-
-from kivymd.button import MDIconButton
 from kivymd.dialog import MDDialog
 from kivymd.label import MDLabel
 from kivymd.list import MDList
-
 from pony.orm import db_session, select, delete
 
+from app.models import *
+from app.util import SCREENS
+from app.views.widgets import ContactListItem
 
-class ContactScreen(Screen):
 
+class ContactList(Screen):
     def __init__(self, **kwargs):
-        super(ContactScreen, self).__init__(**kwargs)
+        super(ContactList, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.populate_listview()
 
@@ -43,14 +38,14 @@ class ContactScreen(Screen):
         for c in select(c for c in Contact).order_by(
                 Contact.name)[:]:
             item = ContactListItem(uuid=c.uuid, text=c.name)
-            item.add_widget(ContactPhoto(source=c.photo))
+            # item.add_widget(ContactPhoto(source=c.photo))
             contact_lv.add_widget(item)
 
         self.scrollview.add_widget(contact_lv)
         self.add_widget(self.scrollview)
 
 
-class ViewContactScreen(Screen):
+class ViewContact(Screen):
     cheaderwidget = ObjectProperty()
     uuid = ObjectProperty()
     phone = StringProperty()
@@ -60,7 +55,7 @@ class ViewContactScreen(Screen):
     address = StringProperty()
 
     def __init__(self, **kwargs):
-        super(ViewContactScreen, self).__init__(**kwargs)
+        super(ViewContact, self).__init__(**kwargs)
         self.uuid = kwargs.get('uuid', None)
         self.app = App.get_running_app()
         self.load_contact()
@@ -68,11 +63,13 @@ class ViewContactScreen(Screen):
     def on_pre_enter(self, *args):
         toolbar = self.app.root.ids['toolbar']
         toolbar.left_action_items = [
-            ['arrow-left', lambda x: self.app.root.switch_to(SCREENS.CONTACT_LIST)]]
+            ['arrow-left',
+             lambda x: self.app.root.switch_to(SCREENS.CONTACT_LIST)]]
 
         toolbar.right_action_items = [
             ['pencil',
-             lambda x: self.app.root.switch_to(SCREENS.EDIT_CONTACT, uuid=self.uuid)],
+             lambda x: self.app.root.switch_to(SCREENS.EDIT_CONTACT,
+                                               uuid=self.uuid)],
             ['delete', lambda x: self.delete_contact()]]
 
     @db_session
@@ -114,15 +111,15 @@ class ViewContactScreen(Screen):
         app.root.switch_to(SCREENS.CONTACT_LIST)
 
 
-class NewContactScreen(Screen):
-    photo = StringProperty()
+class NewContact(Screen):
+    # photo = StringProperty()
     c_name = StringProperty()
     phone = StringProperty()
     email = StringProperty()
     address = StringProperty()
 
     def __init__(self, **kwargs):
-        super(NewContactScreen, self).__init__(**kwargs)
+        super(NewContact, self).__init__(**kwargs)
         self.app = App.get_running_app()
 
     def on_pre_enter(self, *args):
@@ -131,29 +128,31 @@ class NewContactScreen(Screen):
             ['menu', lambda x: self.app.root.toggle_nav_drawer()], ]
         toolbar.right_action_items = [
             ['check', lambda x: self.save_contact()],
-            ['close', lambda x: self.app.root.switch_to(SCREENS.CONTACT_LIST)], ]
+            ['close',
+             lambda x: self.app.root.switch_to(SCREENS.CONTACT_LIST)], ]
 
     def add_photo(self, *args):
         pass
 
     def load_photo(self, path, filename):
-        with open(os.path.join(path, filename[0])) as stream:
-            self.photo
+        # with open(os.path.join(path, filename[0])) as stream:
+        #     self.photo
+        pass
 
     def save_contact(self):
         try:
             with db_session:
-                photo = self.ids.photo.source or os.path.join(
-                    self.app.basedir, 'assets', 'images', 'avatar.jpg')
+                # photo = self.ids.photo.source or os.path.join(
+                #     self.app.basedir, 'assets', 'images', 'avatar.jpg')
 
-                self.photo = photo
+                # self.photo = photo
                 self.c_name = self.ids.name.text
                 self.phone = self.ids.phone.text
                 self.email = self.ids.email.text
                 self.address = self.ids.address.text
 
                 contact = Contact(
-                    name=self.c_name, photo=self.photo, phone=self.phone,
+                    name=self.c_name, phone=self.phone,
                     email=self.email, address=self.address)
 
             self.app.root.switch_to(SCREENS.CONTACT_LIST)
@@ -161,17 +160,17 @@ class NewContactScreen(Screen):
             raise err
 
 
-class EditContactScreen(Screen):
+class EditContact(Screen):
     uuid = ObjectProperty()
 
-    photo = StringProperty()
+    # photo = StringProperty()
     c_name = StringProperty()
     phone = StringProperty()
     email = StringProperty()
     address = StringProperty()
 
     def __init__(self, **kwargs):
-        super(EditContactScreen, self).__init__(**kwargs)
+        super(EditContact, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.uuid = kwargs.get('uuid', None)
         self.load_contact()
@@ -197,14 +196,15 @@ class EditContactScreen(Screen):
             self.address = contact.address
 
     def add_photo(self, *args):
-        content = BoxLayout()
-        content.add_widget(MDIconButton(icon='camera'))
-        content.add_widget(MDIconButton(icon='image-multiple'))
-
-        self.dialog = MDDialog(title='Choose font of image!', content=content)
-        self.dialog.add_action_button('Cancel',
-                                      action=lambda *x: self.dialog.dismiss())
-        self.dialog.open()
+        # content = BoxLayout()
+        # content.add_widget(MDIconButton(icon='camera'))
+        # content.add_widget(MDIconButton(icon='image-multiple'))
+        #
+        # self.dialog = MDDialog(title='Choose font of image!', content=content)
+        # self.dialog.add_action_button('Cancel',
+        #                               action=lambda *x: self.dialog.dismiss())
+        # self.dialog.open()
+        pass
 
     def save_contact(self):
         try:
@@ -214,7 +214,7 @@ class EditContactScreen(Screen):
                 photo = self.ids.photo.source or os.path.join(
                     self.app.basedir, 'assets', 'images', 'avatar.jpg')
 
-                contact.photo = photo
+                # contact.photo = photo
                 contact.c_name = self.ids.name.text
                 contact.phone = self.ids.phone.text
                 contact.email = self.ids.email.text
@@ -223,4 +223,4 @@ class EditContactScreen(Screen):
             self.app.root.switch_to(SCREENS.VIEW_CONTACT, uuid=self.uuid)
 
         except Exception as err:
-            print (err)
+            print(err)

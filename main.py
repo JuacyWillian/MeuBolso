@@ -1,65 +1,61 @@
-import os
-
 from kivy.app import App
 from kivy.properties import StringProperty
-
 from kivymd.navigationdrawer import NavigationLayout
 from kivymd.theming import ThemeManager
 
 from app.models import db
 from app.util import SCREENS
-from app.views.about import AboutScreen
-from app.views.contacts import ContactScreen, NewContactScreen, \
-    ViewContactScreen, EditContactScreen
-from app.views.home import HomeScreen
-from app.views.incomes import IncomeScreen, NewIncomeScreen, ViewIncomeScreen
-from app.views.settings import SettingsScreen
-
-# basedir = os.path.abspath(os.path.dirname(__file__))
+from app.views.about import About
+from app.views.contacts import ContactList, NewContact, \
+    ViewContact, EditContact
+from app.views.home import Home
+from app.views.settings import Setting
+from app.views.transactions import TransactionList, NewTransaction, \
+    ViewTransaction
 
 
 class MyRootLayout(NavigationLayout):
     def __init__(self, **kwargs):
         super(MyRootLayout, self).__init__(**kwargs)
         app = App.get_running_app()
-        print (app)
 
     def switch_to(self, screen, **kwargs):
+
         if screen == SCREENS.HOME:
-            self.ids.scr_mngr.switch_to(HomeScreen(name=screen.name))
+            self.ids.scr_mngr.switch_to(Home(name=screen.name))
 
         elif screen == SCREENS.CONTACT_LIST:
-            self.ids.scr_mngr.switch_to(ContactScreen(name=screen.name))
+            self.ids.scr_mngr.switch_to(ContactList(name=screen.name))
 
         elif screen == SCREENS.NEW_CONTACT:
-            self.ids.scr_mngr.switch_to(NewContactScreen(name=screen.name))
+            self.ids.scr_mngr.switch_to(NewContact(name=screen.name))
 
         elif screen == SCREENS.VIEW_CONTACT:
             uuid = kwargs.get('uuid', None)
             self.ids.scr_mngr.switch_to(
-                ViewContactScreen(name=screen.name, uuid=uuid))
+                ViewContact(name=screen.name, uuid=uuid))
 
         elif screen == SCREENS.EDIT_CONTACT:
             uuid = kwargs.get('uuid', None)
             self.ids.scr_mngr.switch_to(
-                EditContactScreen(name=screen.name, uuid=uuid))
+                EditContact(name=screen.name, uuid=uuid))
 
         elif screen == SCREENS.TRANSACTION_LIST:
-            self.ids.scr_mngr.switch_to(IncomeScreen(name=screen.name))
+            self.ids.scr_mngr.switch_to(TransactionList(name=screen.name))
 
         elif screen == SCREENS.NEW_TRANSACTION:
-            self.ids.scr_mngr.switch_to(NewIncomeScreen(name=screen.name))
+            self.ids.scr_mngr.switch_to(NewTransaction(name=screen.name))
 
         elif screen == SCREENS.VIEW_TRANSACTION:
             uuid = kwargs.get('uuid', None)
             self.ids.scr_mngr.switch_to(
-                ViewIncomeScreen(name=screen.name, uuid=uuid))
+                ViewTransaction(name=screen.name, uuid=uuid))
 
         elif screen == SCREENS.SETTINGS:
-            self.ids.scr_mngr.switch_to(SettingsScreen(name=screen.name))
+            self.ids.scr_mngr.switch_to(Setting(name=screen.name))
 
         elif screen == SCREENS.ABOUT:
-            self.ids.scr_mngr.switch_to(AboutScreen(name=screen.name))
+            self.ids.scr_mngr.switch_to(About(name=screen.name))
 
 
 class MeuBolsoApp(App):
@@ -70,8 +66,6 @@ class MeuBolsoApp(App):
         self.db = db
         self.db.bind('sqlite', 'database.db', create_db=True)
         self.db.generate_mapping(create_tables=True)
-        # self.basedir = basedir
-
         return self.root
 
 

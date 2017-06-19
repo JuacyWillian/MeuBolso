@@ -2,9 +2,9 @@ from kivy.app import App
 from kivy.uix.screenmanager import Screen
 
 
-class HomeScreen(Screen):
+class Home(Screen):
     def __init__(self, **kwargs):
-        super(HomeScreen, self).__init__(**kwargs)
+        super(Home, self).__init__(**kwargs)
 
     def before_load(self, ):
         self.update_toolbar()

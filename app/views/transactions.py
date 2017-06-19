@@ -1,57 +1,40 @@
-from datetime import date
-from decimal import Decimal, ROUND_DOWN
-
-from app.models import *
+from decimal import ROUND_DOWN
 
 from dateutil.relativedelta import relativedelta
-
 from kivy.app import App
 from kivy.properties import ObjectProperty, StringProperty, ListProperty, \
-    NumericProperty, BooleanProperty
-from kivy.uix.boxlayout import BoxLayout
+    NumericProperty
 from kivy.uix.screenmanager import Screen
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.stacklayout import StackLayout
-
 from kivymd.date_picker import MDDatePicker
 from kivymd.dialog import MDDialog
 from kivymd.label import MDLabel
-from kivymd.list import MDList, IRightBody, \
-    OneLineListItem, ThreeLineListItem
-from kivymd.selectioncontrols import MDCheckbox
-
+from kivymd.list import MDList
 from pony.orm import db_session, select, rollback, delete
 
+from app.models import *
 from app.util import SCREENS
+from app.views.dialogs import ChooseContactItem
+from app.views.widgets import TransactionListItem, ParcelWidget
 
 
-class IncomeListItem(ThreeLineListItem):
+class TransactionList(Screen):
     def __init__(self, **kwargs):
-        super(IncomeListItem, self).__init__(**kwargs)
-        self.app = App.get_running_app()
-        self.uuid = kwargs.get('uuid', None)
-
-    def on_release(self):
-        self.app.root.switch_to(SCREENS.VIEW_TRANSACTION, uuid=self.uuid)
-
-
-class IncomeListItemRight(IRightBody, MDCheckbox):
-    pass
-
-
-class IncomeScreen(Screen):
-    def __init__(self, **kwargs):
-        super(IncomeScreen, self).__init__(**kwargs)
+        super(TransactionList, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.populate_listview()
 
     def on_pre_enter(self, *args):
         toolbar = self.app.root.ids.toolbar
         toolbar.left_action_items = [
-            ['menu', lambda x: self.app.root.toggle_nav_drawer()], ]
+            ['menu', lambda x: self.app.root.toggle_nav_drawer()],
+        ]
 
         toolbar.right_action_items = [
-            ['cash-usd', lambda x: self.app.root.switch_to(SCREENS.NEW_TRANSACTION)], ]
+            ['cash-usd',
+             lambda x: self.app.root.switch_to(SCREENS.NEW_TRANSACTION)],
+        ]
 
     @db_session
     def populate_listview(self):
@@ -60,39 +43,23 @@ class IncomeScreen(Screen):
 
         today = date.today()
         for p in select(p for p in Parcel if (
-                p.expiration.year == today.year \
-                and p.expiration.month == today.month)\
-                or (p.paid == False and p.expiration < today))\
-                           .order_by(Parcel.expiration)[:]:
+                        p.expiration.year == today.year \
+                        and p.expiration.month == today.month) \
+                or (p.paid == False and p.expiration < today)) \
+                         .order_by(Parcel.expiration)[:]:
             text = p.title
             secontary_text = "%s\nR$ %.2f" % (
                 p.expiration.strftime("%Y-%m-%d"), p.value)
 
-            item = IncomeListItem(
+            item = TransactionListItem(
                 text=text, secondary_text=secontary_text, uuid=p.uuid)
-            # item.add_widget(IncomeListItemRight())
             income_lv.add_widget(item)
 
         self.scrollview.add_widget(income_lv)
         self.add_widget(self.scrollview)
 
 
-class ParcelWidget(BoxLayout):
-    title = StringProperty()
-    expiration = StringProperty()
-    value = StringProperty()
-    paid = BooleanProperty()
-
-
-    def __init__(self, title, expiration, value, paid, **kwargs):
-        super(ParcelWidget, self).__init__(**kwargs)
-        self.title = title
-        self.expiration = expiration.strftime("%y-%m-%d")
-        self.value = str(value)
-        self.paid = paid
-
-
-class ViewIncomeScreen(Screen):
+class ViewTransaction(Screen):
     uuid = ObjectProperty()
     ttitle = StringProperty()
     tdescription = StringProperty()
@@ -105,7 +72,7 @@ class ViewIncomeScreen(Screen):
     parcels = ListProperty()
 
     def __init__(self, **kwargs):
-        super(ViewIncomeScreen, self).__init__(**kwargs)
+        super(ViewTransaction, self).__init__(**kwargs)
         self.uuid = kwargs.get('uuid', None)
         self.app = App.get_running_app()
         self.load_ticket()
@@ -113,11 +80,13 @@ class ViewIncomeScreen(Screen):
     def on_pre_enter(self, *args):
         toolbar = self.app.root.ids['toolbar']
         toolbar.left_action_items = [
-            ['arrow-left', lambda x: self.app.root.switch_to(SCREENS.TRANSACTION_LIST)]]
+            ['arrow-left',
+             lambda x: self.app.root.switch_to(SCREENS.TRANSACTION_LIST)]]
 
         toolbar.right_action_items = [
             ['pencil',
-             lambda x: self.app.root.switch_to(SCREENS.EDIT_TRANSACTION, uuid=self.uuid)],
+             lambda x: self.app.root.switch_to(SCREENS.EDIT_TRANSACTION,
+                                               uuid=self.uuid)],
             ['delete', lambda x: self.remove()]]
 
     @db_session
@@ -138,7 +107,6 @@ class ViewIncomeScreen(Screen):
 
             parcel_list = self.ids.parcel_list
             for p in self.parcels:
-
                 item = ParcelWidget(p.title, p.expiration, p.value, False)
                 parcel_list.add_widget(item)
 
@@ -170,51 +138,11 @@ class ViewIncomeScreen(Screen):
         app.root.switch_to(SCREENS.TRANSACTION_LIST)
 
 
-class ChooseContactItem(OneLineListItem):
-    uuid = ObjectProperty()
-    icon = StringProperty()
-    name = StringProperty()
-
-    def __init__(self, **kwargs):
-        super(ChooseContactItem, self).__init__(**kwargs)
-        self.uuid = kwargs.get('uuid')
-        self.name = kwargs.get('name')
-
-        self.text = self.name
-
-    def on_release(self):
-        app = App.get_running_app()
-        cur_screen = app.root.ids.scr_mngr.current_screen
-        cur_screen.contact = self.uuid, self.name
-        cur_screen.dialog.dismiss()
-
-
-class ChooseUserDialog(MDDialog):
-    def __init__(self, **kwargs):
-        super(ChooseUserDialog, self).__init__(**kwargs)
-
-        self.listbox = MDList(id='userList')
-
-        self.content = self.listbox
-
-        self.load_contacts()
-        self.add_action_button(text="Dismiss",
-                               action=lambda *x: self.dismiss())
-
-    def load_contacts(self, ):
-        with db_session:
-            contacts = select(c for c in Contact).order_by(Contact.name)[:]
-
-            for c in contacts:
-                self.listbox.add_widget(
-                    ChooseContactItem(uuid=c.uuid, icon=c.photo, name=c.name))
-
-
-class NewIncomeScreen(Screen):
+class NewTransaction(Screen):
     contact = ListProperty()
 
     def __init__(self, **kwargs):
-        super(NewIncomeScreen, self).__init__(**kwargs)
+        super(NewTransaction, self).__init__(**kwargs)
         self.app = App.get_running_app()
 
     def on_pre_enter(self, *args):
@@ -223,7 +151,8 @@ class NewIncomeScreen(Screen):
             ['menu', lambda x: self.app.root.toggle_nav_drawer()], ]
         toolbar.right_action_items = [
             ['check', lambda x: self.save_contact()],
-            ['close', lambda x: self.app.root.switch_to(SCREENS.TRANSACTION_LIST)], ]
+            ['close',
+             lambda x: self.app.root.switch_to(SCREENS.TRANSACTION_LIST)], ]
 
     def change_check(self, name):
         if name == 'chk_despesa':

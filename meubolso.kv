@@ -16,24 +16,22 @@
 #:import SCREENS app.util.SCREENS
 
 
-<ContactListItem>:
-    on_press: self.select_contact()
 
 
-<ContactHeaderWidget>:
-    orientation: 'vertical'
-    size_hint_y: None
-    height: photo.height
-
-    RelativeLayout:
-        AsyncImage:
-            id: photo
-            source: root.photo
-            allow_stretch: True
-            keep_ratio: False
-            size_hint_y: None
-            height: (self.width * 9) / 16
-            padding: dp(4)
+#<ContactHeaderWidget>:
+#    orientation: 'vertical'
+#    size_hint_y: None
+#    height: photo.height
+#
+#    RelativeLayout:
+#        AsyncImage:
+#            id: photo
+#            source: root.photo
+#            allow_stretch: True
+#            keep_ratio: False
+#            size_hint_y: None
+#            height: (self.width * 9) / 16
+#            padding: dp(4)
 
 
 <ContactAddressWidget>:
@@ -84,7 +82,7 @@
         height: root.grid_height
 
 
-<HomeScreen>:
+<Home>:
     name: 'home'
     on_pre_enter: self.before_load()
 
@@ -92,12 +90,11 @@
         text: 'Hello Home Screen'
 
 
-<ContactScreen>:
+<ContactList>:
     name: 'contacts'
 
 
-<NewContactScreen>:
-    name: 'newcontact'
+<NewContact>:
     ScrollView:
         do_scroll_x: False
         BoxLayout:
@@ -106,22 +103,22 @@
             orientation: 'vertical'
             padding: dp(10), dp(10)
             spacing: dp(10)
-            RelativeLayout:
-                size_hint: None, None
-                size: photo.width, photo.height
-                AsyncImage:
-                    id: photo
-                    source: root.photo
-                    size_hint_y: None
-                    keep_ratio: False
-                    allow_stretch: True
-                    width: root.width
-                    height: (self.width * 9) / 16
-                MDFloatingActionButton:
-                    id: cambutton
-                    icon: 'camera'
-                    on_press: root.add_photo()
-                    pos_hint:{'right': 0.95, 'y': 0.05}
+#            RelativeLayout:
+#                size_hint: None, None
+#                size: photo.width, photo.height
+#                AsyncImage:
+#                    id: photo
+#                    source: root.photo
+#                    size_hint_y: None
+#                    keep_ratio: False
+#                    allow_stretch: True
+#                    width: root.width
+#                    height: (self.width * 9) / 16
+#                MDFloatingActionButton:
+#                    id: cambutton
+#                    icon: 'camera'
+#                    on_press: root.add_photo()
+#                    pos_hint:{'right': 0.95, 'y': 0.05}
 
             MDTextField:
                 id: name
@@ -145,7 +142,7 @@
                 text: root.address if root.address is not None else ''
 
 
-<EditContactScreen>:
+<EditContact>:
     ScrollView:
         do_scroll_x: False
         BoxLayout:
@@ -155,23 +152,23 @@
             orientation: 'vertical'
             padding: dp(10), dp(10)
             spacing: dp(10)
-            RelativeLayout:
-                size_hint: None, None
-                size: photo.width, photo.height
-                AsyncImage:
-                    id: photo
-                    source: root.photo
-                    size_hint: None, None
-                    keep_ratio: True
-                    allow_stretch: True
-                    width: (box.width - box.padding[0] * 2)
-                    height: (self.width * 9) / 16
-
-                MDFloatingActionButton:
-                    id: cambutton
-                    icon: 'camera'
-                    on_press: root.add_photo()
-                    pos_hint:{'right': 0.95, 'y': 0.05}
+#            RelativeLayout:
+#                size_hint: None, None
+#                size: photo.width, photo.height
+#                AsyncImage:
+#                    id: photo
+#                    source: root.photo
+#                    size_hint: None, None
+#                    keep_ratio: True
+#                    allow_stretch: True
+#                    width: (box.width - box.padding[0] * 2)
+#                    height: (self.width * 9) / 16
+#
+#                MDFloatingActionButton:
+#                    id: cambutton
+#                    icon: 'camera'
+#                    on_press: root.add_photo()
+#                    pos_hint:{'right': 0.95, 'y': 0.05}
 
             MDTextField:
                 id: name
@@ -195,7 +192,7 @@
                 text: root.address if root.address is not None else ''
 
 
-<ViewContactScreen>:
+<ViewContact>:
     ScrollView:
         do_scroll_x: False
 
@@ -231,7 +228,7 @@
                 text: 'Address: '+ root.address if root.address is not None else ''
 
 
-<IncomeScreen>:
+<TransactionList>:
     name: 'incomes'
 
 
@@ -240,7 +237,7 @@
     size: '24dp', '24dp'
 
 
-<NewIncomeScreen>:
+<NewTransaction>:
     name: 'newincome'
     ScrollView:
         do_scroll_x: False
@@ -441,7 +438,7 @@
             height: '25dp'
 
 
-<ViewIncomeScreen>:
+<ViewTransaction>:
     name: 'newincome'
     ScrollView:
         do_scroll_x: False
@@ -535,20 +532,13 @@
     size_hint: .85, .95
 
 
-<EditIncomeScreen>:
-    name: 'editincome'
-    on_pre_enter: self.before_load()
-
-
-<SettingsScreen>:
-    name: 'settings'
+<Setting>:
     on_pre_enter: self.before_load()
     MDLabel:
         text: 'settings'
 
 
-<AboutScreen>:
-    name: 'about'
+<About>:
     on_pre_enter: self.before_load()
     Image:
         source: 'screenshots.jpg'
@@ -605,4 +595,4 @@ MyRootLayout:
 
         ScreenManager:
             id: scr_mngr
-            HomeScreen:
+            Home:
