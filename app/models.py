@@ -1,37 +1,38 @@
 from datetime import *
 from decimal import Decimal
-from uuid import UUID
 
-from pony.orm import Database, PrimaryKey, Required, Optional, Set, LongStr
+from pony.orm import Database, Required, Optional, Set, LongStr
+
+from app.util import TIPO_TRANSACAO, TIPO_PAGAMENTO
 
 db = Database()
 
 
-class Contact(db.Entity):
-    uuid = PrimaryKey(UUID, auto=True)
-    name = Required(str)
-    phone = Optional(str)
-    address = Optional(str)
+class Contato(db.Entity):
+    nome = Required(str)
+    telefone = Optional(str)
+    endereco = Optional(str)
     email = Optional(str)
-    tickets = Set('Ticket')
+    transacoes = Set('Transacao')
 
 
-class Ticket(db.Entity):
-    uuid = PrimaryKey(UUID, auto=True)
-    title = Required(str)
-    description = Optional(LongStr)
-    pubdate = Required(date, default=datetime.now())
-    tvalue = Required(float)
-    nparcels = Required(int, default=1)
-    parcels = Set('Parcel')
-    ttype = Required(str)
-    contact = Optional(Contact)
+class Transacao(db.Entity):
+    nome = Required(str)
+    descricao = Optional(LongStr)
+    lancamento = Required(date, default=date.today())
+    parcelado = Required(bool, default=False)
+    parcelas = Set('Parcela')
+    tipo_transacao = Required(str, default=TIPO_TRANSACAO.DESPESA.name)
+    contato = Optional(Contato)
+    tipo_pagamento = Required(str, default=TIPO_PAGAMENTO.A_VISTA.name)
+    valor = Required(Decimal)
+    recorrente = Required(bool, default=False)
+    frequencia = Optional(str)
 
 
-class Parcel(db.Entity):
-    uuid = PrimaryKey(UUID, auto=True)
-    title = Required(str)
-    ticket = Required('Ticket')
-    expiration = Required(date)
-    value = Required(Decimal)
-    paid = Required(bool, default=False)
+class Parcela(db.Entity):
+    nome = Required(str)
+    transacao = Required('Transacao')
+    vencimento = Required(date)
+    valor = Required(Decimal)
+    pago = Required(bool, default=False)

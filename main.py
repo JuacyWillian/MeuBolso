@@ -1,61 +1,75 @@
+import json
+import os
+
 from kivy.app import App
+from kivy.core.text import LabelBase
 from kivy.properties import StringProperty
 from kivymd.navigationdrawer import NavigationLayout
 from kivymd.theming import ThemeManager
 
 from app.models import db
-from app.util import SCREENS
-from app.views.about import About
-from app.views.contacts import ContactList, NewContact, \
-    ViewContact, EditContact
-from app.views.home import Home
-from app.views.settings import Setting
-from app.views.transactions import TransactionList, NewTransaction, \
+from app.util import TELAS
+from app.views.configuracao import Configuracao
+from app.views.contatos import ContactList, EditContact, NewContact, \
+    ViewContact
+from app.views.inicio import Home
+from app.views.sobre import Sobre
+from app.views.transacoes import NewTransaction, TransactionList, \
     ViewTransaction
+from iconfonts import create_fontdict_file, register
+from settings import DATABASE_CONFIG, DATABASE_ARGS, LANGUAGE, datadir, \
+    ICONFONTS, FONTS
+
+for font in ICONFONTS:
+    create_fontdict_file(font['css'], font['fontd'])
+    register(font['name'], font['prefix'], font['ttf'], font['fontd'])
+
+for font in FONTS:
+    LabelBase.register(**font)
 
 
 class MyRootLayout(NavigationLayout):
     def __init__(self, **kwargs):
         super(MyRootLayout, self).__init__(**kwargs)
-        app = App.get_running_app()
+        self.pp = App.get_running_app()
 
     def switch_to(self, screen, **kwargs):
 
-        if screen == SCREENS.HOME:
+        if screen == TELAS.INICIO:
             self.ids.scr_mngr.switch_to(Home(name=screen.name))
 
-        elif screen == SCREENS.CONTACT_LIST:
+        elif screen == TELAS.LISTA_CONTATO:
             self.ids.scr_mngr.switch_to(ContactList(name=screen.name))
 
-        elif screen == SCREENS.NEW_CONTACT:
+        elif screen == TELAS.NOVO_CONTATO:
             self.ids.scr_mngr.switch_to(NewContact(name=screen.name))
 
-        elif screen == SCREENS.VIEW_CONTACT:
-            uuid = kwargs.get('uuid', None)
+        elif screen == TELAS.DETALHE_CONTATO:
+            id = kwargs.get('id', None)
             self.ids.scr_mngr.switch_to(
-                ViewContact(name=screen.name, uuid=uuid))
+                ViewContact(name=screen.name, id=id))
 
-        elif screen == SCREENS.EDIT_CONTACT:
-            uuid = kwargs.get('uuid', None)
+        elif screen == TELAS.EDITAR_CONTATO:
+            id = kwargs.get('id', None)
             self.ids.scr_mngr.switch_to(
-                EditContact(name=screen.name, uuid=uuid))
+                EditContact(name=screen.name, id=id))
 
-        elif screen == SCREENS.TRANSACTION_LIST:
+        elif screen == TELAS.LISTA_TRANSACAO:
             self.ids.scr_mngr.switch_to(TransactionList(name=screen.name))
 
-        elif screen == SCREENS.NEW_TRANSACTION:
+        elif screen == TELAS.NOVA_TRANSACAO:
             self.ids.scr_mngr.switch_to(NewTransaction(name=screen.name))
 
-        elif screen == SCREENS.VIEW_TRANSACTION:
-            uuid = kwargs.get('uuid', None)
+        elif screen == TELAS.DETALHE_TRANSACAO:
+            id = kwargs.get('id', None)
             self.ids.scr_mngr.switch_to(
-                ViewTransaction(name=screen.name, uuid=uuid))
+                ViewTransaction(name=screen.name, id=id))
 
-        elif screen == SCREENS.SETTINGS:
-            self.ids.scr_mngr.switch_to(Setting(name=screen.name))
+        elif screen == TELAS.CONFIGURACAO:
+            self.ids.scr_mngr.switch_to(Configuracao(name=screen.name))
 
-        elif screen == SCREENS.ABOUT:
-            self.ids.scr_mngr.switch_to(About(name=screen.name))
+        elif screen == TELAS.SOBRE:
+            self.ids.scr_mngr.switch_to(Sobre(name=screen.name))
 
 
 class MeuBolsoApp(App):
@@ -64,9 +78,15 @@ class MeuBolsoApp(App):
 
     def build(self):
         self.db = db
-        self.db.bind('sqlite', 'database.db', create_db=True)
+        self.db.bind(*DATABASE_CONFIG, **DATABASE_ARGS)
         self.db.generate_mapping(create_tables=True)
+        self.load_strings()
         return self.root
+
+    def load_strings(self):
+        with open(os.path.join(datadir, 'languages', "%s.json" % LANGUAGE),
+                  'r')as lang:
+            self.strings = json.load(lang)
 
 
 if __name__ == '__main__':

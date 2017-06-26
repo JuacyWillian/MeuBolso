@@ -1,5 +1,17 @@
 from kivy.app import App
+from kivy.lang import Builder
 from kivy.uix.screenmanager import Screen
+
+kv = """
+<Home>:
+    nome: 'home'
+    on_pre_enter: self.before_load()
+
+    MDLabel:
+        markup: True
+        text: '%s Hello Home Screen'%icon('mdi-home')
+"""
+Builder.load_string(kv)
 
 
 class Home(Screen):

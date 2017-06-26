@@ -2,549 +2,41 @@
 #:import MDNavigationDrawer kivymd.navigationdrawer.MDNavigationDrawer
 #:import NavigationDrawerToolbar kivymd.navigationdrawer.NavigationDrawerToolbar
 #:import NavigationDrawerIconButton kivymd.navigationdrawer.NavigationDrawerIconButton
-#:import MDLabel kivymd.label.MDLabel
+
 #:import MDList kivymd.list.MDList
 #:import TwoLineAvatarListItem kivymd.list.TwoLineAvatarListItem
 #:import ThreeLineAvatarListItem kivymd.list.ThreeLineAvatarListItem
+
 #:import MDSpinner kivymd.spinner.MDSpinner
 #:import MDCard kivymd.card.MDCard
 #:import MDSeparator kivymd.card.MDSeparator
-#:import MDFloatingActionButton kivymd.button.MDFloatingActionButton
+
 #:import MDTextField kivymd.textfields.MDTextField
-#:import MDIconButton kivymd.button.MDIconButton
 #:import MDCheckbox kivymd.selectioncontrols.MDCheckbox
-#:import SCREENS app.util.SCREENS
+#:import MDLabel kivymd.label.MDLabel
 
+#:import MDFloatingActionButton kivymd.button.MDFloatingActionButton
+#:import MDIconButton kivymd.button.MDIconButton
+#:import md_icons kivymd.icon_definitions.md_icons
 
+#:import TELAS app.util.TELAS
+#:import TIPO_TRANSACAO app.util.TIPO_TRANSACAO
+#:import strings app.lang.s
+#:import icon iconfonts.icon
 
+<Widget>:
+	font_name: 'ubuntu'
 
-#<ContactHeaderWidget>:
-#    orientation: 'vertical'
-#    size_hint_y: None
-#    height: photo.height
-#
-#    RelativeLayout:
-#        AsyncImage:
-#            id: photo
-#            source: root.photo
-#            allow_stretch: True
-#            keep_ratio: False
-#            size_hint_y: None
-#            height: (self.width * 9) / 16
-#            padding: dp(4)
-
-
-<ContactAddressWidget>:
-    orientation: 'vertical'
-    size_hint_y: None
-    height: title.height + sep.height + address_grid.height
-    spacing: dp(4)
-    MDLabel:
-        id: title
-        text: 'Addresses:'
-    MDSeparator:
-        id: sep
-    GridLayout:
-        id: address_grid
-        cols:2
-        size_hint_y: None
-        height: root.grid_height
-
-
-<ContactEmailWidget>:
-    orientation: 'vertical'
-    size_hint_y: None
-    height: self.minimum_height
-    spacing: dp(16)
-    MDLabel:
-        text: 'Emails:'
-    MDSeparator:
-    GridLayout:
-        id: email_grid
-        cols:2
-        size_hint_y: None
-        height: root.grid_height
-
-
-<ContactPhoneWidget>:
-    orientation: 'vertical'
-    size_hint_y: None
-    height: self.minimum_height
-    spacing: dp(16)
-
-    MDLabel:
-        text: 'Phones:'
-    MDSeparator:
-    GridLayout:
-        id: phone_grid
-        cols:2
-        size_hint_y: None
-        height: root.grid_height
-
-
-<Home>:
-    name: 'home'
-    on_pre_enter: self.before_load()
-
-    MDLabel:
-        text: 'Hello Home Screen'
-
-
-<ContactList>:
-    name: 'contacts'
-
-
-<NewContact>:
-    ScrollView:
-        do_scroll_x: False
-        BoxLayout:
-            size_hint_y: None
-            height: self.minimum_height
-            orientation: 'vertical'
-            padding: dp(10), dp(10)
-            spacing: dp(10)
-#            RelativeLayout:
-#                size_hint: None, None
-#                size: photo.width, photo.height
-#                AsyncImage:
-#                    id: photo
-#                    source: root.photo
-#                    size_hint_y: None
-#                    keep_ratio: False
-#                    allow_stretch: True
-#                    width: root.width
-#                    height: (self.width * 9) / 16
-#                MDFloatingActionButton:
-#                    id: cambutton
-#                    icon: 'camera'
-#                    on_press: root.add_photo()
-#                    pos_hint:{'right': 0.95, 'y': 0.05}
-
-            MDTextField:
-                id: name
-                hint_text: "Name: "
-                text: root.c_name if root.c_name is not None else ''
-
-            MDTextField:
-                id: phone
-                hint_text: 'Phone: '
-                text: root.phone if root.phone is not None else ''
-
-            MDTextField:
-                id: email
-                hint_text: 'Email: '
-                text: root.email if root.email is not None else ''
-
-            MDTextField:
-                id: address
-                multiline: True
-                hint_text: 'Address: '
-                text: root.address if root.address is not None else ''
-
-
-<EditContact>:
-    ScrollView:
-        do_scroll_x: False
-        BoxLayout:
-            id: box
-            size_hint_y: None
-            height: self.minimum_height
-            orientation: 'vertical'
-            padding: dp(10), dp(10)
-            spacing: dp(10)
-#            RelativeLayout:
-#                size_hint: None, None
-#                size: photo.width, photo.height
-#                AsyncImage:
-#                    id: photo
-#                    source: root.photo
-#                    size_hint: None, None
-#                    keep_ratio: True
-#                    allow_stretch: True
-#                    width: (box.width - box.padding[0] * 2)
-#                    height: (self.width * 9) / 16
-#
-#                MDFloatingActionButton:
-#                    id: cambutton
-#                    icon: 'camera'
-#                    on_press: root.add_photo()
-#                    pos_hint:{'right': 0.95, 'y': 0.05}
-
-            MDTextField:
-                id: name
-                hint_text: "Name: "
-                text: root.c_name if root.c_name is not None else ''
-
-            MDTextField:
-                id: phone
-                hint_text: 'Phone: '
-                text: root.phone if root.phone is not None else ''
-
-            MDTextField:
-                id: email
-                hint_text: 'Email: '
-                text: root.email if root.email is not None else ''
-
-            MDTextField:
-                id: address
-                multiline: True
-                hint_text: 'Address: '
-                text: root.address if root.address is not None else ''
-
-
-<ViewContact>:
-    ScrollView:
-        do_scroll_x: False
-
-        BoxLayout:
-            orientation: 'vertical'
-            size_hint_y: None
-            padding: dp(10), dp(10)
-            spacing: dp(10)
-            height: self.minimum_height
-
-            ContactHeaderWidget:
-                id: cheaderwidget
-
-            MDLabel:
-                size_hint_y: None
-                font_style: 'Display1'
-                height: dp(50)
-                text: root.c_name if root.c_name is not None else ''
-
-            MDLabel:
-                size_hint_y: None
-                height: dp(25)
-                text: 'Phone: ' + root.phone if root.phone is not None else ''
-
-            MDLabel:
-                size_hint_y: None
-                height: dp(25)
-                text: 'Email: ' + root.email if root.email is not None else ''
-
-            MDLabel:
-                size_hint_y: None
-                height: dp(40)
-                text: 'Address: '+ root.address if root.address is not None else ''
-
-
-<TransactionList>:
-    name: 'incomes'
-
-
-<MyCheckBox>:
+<IconView@MDLabel>:
+    font_style: 'Icon'
     size_hint: None, None
-    size: '24dp', '24dp'
+    font_size: '24'
+    size: 48, 48
+    halign: 'center'
+    valign: 'center'
+    icon: ''
+    text: u'{}'.format(md_icons.get(root.icon, ''))
 
-
-<NewTransaction>:
-    name: 'newincome'
-    ScrollView:
-        do_scroll_x: False
-        BoxLayout:
-            size_hint_y: None
-            height: self.minimum_height
-            orientation: 'vertical'
-            padding: dp(10), dp(10)
-            spacing: dp(10)
-
-            MDTextField:
-                id: title
-                hint_text: "Name: "
-                required: True
-
-            MDTextField:
-                id: description
-                multiline: True
-                hint_text: 'Description: '
-
-            BoxLayout:
-                size_hint_y: None
-                height: self.minimum_height
-                MDTextField:
-                    id: pubdate
-                    hint_text: 'Date: '
-                    required: True
-
-                MDIconButton:
-                    size_hint: None, None
-                    icon: 'calendar'
-                    on_press: root.show_datepicker('pubdate')
-
-            BoxLayout:
-                size_hint_y: None
-                height: self.minimum_height
-                MDTextField:
-                    id: expiration
-                    hint_text: 'Expiration: '
-                    required: True
-
-                MDIconButton:
-                    size_hint: None, None
-                    icon: 'calendar'
-                    on_press: root.show_datepicker('expiration')
-
-            BoxLayout:
-                size_hint_y: None
-                height: self.minimum_height
-                spacing: '10dp'
-
-                MDTextField:
-                    id: value
-                    hint_text: "Value: "
-                    input_filter: 'float'
-                    input_type: 'number'
-                    required: True
-                    text: '0'
-
-                MDCheckbox:
-                    id: parcelamento
-                    size_hint_x: None #, None
-                    size: '24dp', '24dp'
-                    active: False
-
-
-                MDTextField:
-                    id: parcels
-                    hint_text: "Parcels:"
-                    size_hint_x: None
-                    width: '100dp'
-                    required: True
-                    input_filter: 'int'
-                    text: '1'
-                    disabled: False if parcelamento.active else True
-
-            BoxLayout:
-                size_hint_y: None
-                height: self.minimum_height
-                spacing: '10dp'
-
-                MDTextField:
-                    id: value
-                    hint_text: "Value: "
-                    input_filter: 'float'
-                    input_type: 'number'
-                    required: True
-                    text: '0'
-
-                MDCheckbox:
-                    id: parcelamento
-                    size_hint_x: None #, None
-                    size: '24dp', '24dp'
-                    active: False
-
-
-                MDTextField:
-                    id: parcels
-                    hint_text: "Parcels:"
-                    size_hint_x: None
-                    width: '100dp'
-                    required: True
-                    input_filter: 'int'
-                    text: '1'
-                    disabled: False if parcelamento.active else True
-
-            BoxLayout:
-                size_hint_y: None
-                height: self.minimum_height
-                spacing: dp(10)
-
-                MDLabel:
-                    id: type_ticket
-                    font_style: 'Caption'
-                    font_size: '16dp'
-                    text: 'Receita'
-                    disabled: False if switch.active else True
-                    size_hint_x: .4
-                    size_hint_y: None
-                    halign: 'center'
-                    height: '24dp'
-
-                MDSwitch:
-                    id: switch
-                    size_hint: None, None
-                    size: '48dp', '24dp'
-                    height: '24dp'
-
-                MDLabel:
-                    id: type_ticket
-                    font_style: 'Caption'
-                    font_size: '16dp'
-                    text: 'Despesa'
-                    disabled: True if switch.active else False
-                    size_hint_x: .4
-                    size_hint_y: None
-                    halign: 'center'
-                    height: '24dp'
-
-            BoxLayout:
-                size_hint_y: None
-                height: self.minimum_height
-                MDTextField:
-                    id: contact_name
-                    hint_text: 'Contact:'
-                    disabled: True
-
-                MDIconButton:
-                    size_hint: None, None
-                    icon: 'close'
-                    on_press: root.contact = []
-
-                MDIconButton:
-                    size_hint: None, None
-                    icon: 'account-box-outline'
-                    on_press: root.show_choose_contact_dialog()
-
-
-<ParcelWidget>:
-    orientation: 'vertical'
-    size_hint_y: None
-    height: '50dp'
-    
-    MDLabel:
-        id: parcel_title
-        font_style: 'Caption'
-        text: root.title
-        bold: True
-        
-    BoxLayout:
-        padding: [0,0,0,15]
-        MDLabel:
-            id: parcel_expiration
-            font_style: 'Caption'
-            text: "Expiration: %s"%root.expiration
-            size_hint: .4, None
-            height: '25dp'
-
-        MDLabel:
-            id: parcel_value
-            font_style: 'Caption'
-            text: "R$ %s" % root.value
-            size_hint: .3, None
-            height: '25dp'
-
-        MDCheckbox:
-            id: parcel_paid
-            active: root.paid
-            size_hint: .05, None
-            height: self.width
-
-        MDLabel:
-            id: parcel_paid
-            font_style: 'Caption'
-            halign: 'center'
-            text: 'paid' if root.paid else 'not paid'
-            size_hint: .15, None
-            height: '25dp'
-
-
-<ViewTransaction>:
-    name: 'newincome'
-    ScrollView:
-        do_scroll_x: False
-
-        StackLayout:
-            size_hint_y: None
-            height: self.minimum_height
-            padding: '10dp'
-            spacing: '5dp'
-
-            MDLabel:
-                id: title
-                font_style: 'Title'
-                text: root.ttitle
-                size_hint_y: None
-                height: dp(60)
-
-            MDLabel:
-                id: description
-                text: root.tdescription
-                font_style: 'Body1'
-                size_hint_y: None
-
-            GridLayout:
-                cols: 2
-                size_hint_y: None
-                height: dp(160)
-                spacing: dp(5)
-                row_force_default: True
-                row_default_height: '20dp'
-                padding: [0,15,0,5]
-
-                MDLabel:
-                    size_hint_x: None
-                    text: 'Date: '
-                    font_style: 'Caption'
-
-                MDLabel:
-                    id: pubdate
-                    text: root.tpubdate
-                    font_style: 'Caption'
-
-                MDLabel:
-                    size_hint_x: None
-                    text: 'Total Value: '
-                    font_style: 'Caption'
-
-                MDLabel:
-                    id: pubdate
-                    text: str(root.tvalue)
-                    font_style: 'Caption'
-
-                MDLabel:
-                    size_hint_x: None
-                    text: 'Parcel Number: '
-                    font_style: 'Caption'
-
-                MDLabel:
-                    id: pubdate
-                    text: str(root.tnparcels)
-                    font_style: 'Caption'
-
-                MDLabel:
-                    size_hint_x: None
-                    text: 'Type: '
-                    font_style: 'Caption'
-
-                MDLabel:
-                    id: pubdate
-                    text: root.ttype
-                    font_style: 'Caption'
-
-                MDLabel:
-                    size_hint_x: None
-                    text: 'Contact: '
-                    font_style: 'Caption'
-
-                MDLabel:
-                    id: pubdate
-                    font_style: 'Caption'
-
-            BoxLayout:
-                size_hint_y: None
-                orientation: 'vertical'
-                height: self.minimum_height
-                spacing: dp(5)
-                id: parcel_list
-
-
-<ChooseUserDialog>:
-    size_hint: .85, .95
-
-
-<Setting>:
-    on_pre_enter: self.before_load()
-    MDLabel:
-        text: 'settings'
-
-
-<About>:
-    on_pre_enter: self.before_load()
-    Image:
-        source: 'screenshots.jpg'
-    Label:
-        text_size: root.width, None
-        size: self.texture_size
 
 
 MyRootLayout:
@@ -552,37 +44,37 @@ MyRootLayout:
         id: nav_drawer
 
         NavigationDrawerToolbar:
-            title: "Meu Bolso"
+            title: strings.app_name
             left_action_items: [['arrow-left', lambda x: app.root.toggle_nav_drawer()]]
 
         NavigationDrawerIconButton:
             icon: 'home'
             text: "Inicio"
-            on_release: root.switch_to(SCREENS.HOME)
+            on_release: root.switch_to(TELAS.INICIO)
 
         NavigationDrawerIconButton:
             icon: 'account-multiple'
-            text: "Contacts"
-            on_release: root.switch_to(SCREENS.CONTACT_LIST)
+            text: "Contatos"
+            on_release: root.switch_to(TELAS.LISTA_CONTATO)
 
         NavigationDrawerIconButton:
             icon: 'cash-multiple'
-            text: "Cash Flow"
-            on_release: root.switch_to(SCREENS.TRANSACTION_LIST)
+            text: "Transações"
+            on_release: root.switch_to(TELAS.LISTA_TRANSACAO)
 
         NavigationDrawerIconButton:
             icon: 'settings'
-            text: "Settings"
-            on_release: root.switch_to(SCREENS.SETTINGS)
+            text: "Configurações"
+            on_release: root.switch_to(TELAS.CONFIGURACAO)
 
         NavigationDrawerIconButton:
             icon: 'help-circle'
-            text: "About"
-            on_release: root.switch_to(SCREENS.ABOUT)
+            text: "Sobre"
+            on_release: root.switch_to(TELAS.SOBRE)
 
         NavigationDrawerIconButton:
             icon: 'exit-to-app'
-            text: "Quit"
+            text: "Sair"
             on_release: app.stop()
 
     BoxLayout:
@@ -590,7 +82,7 @@ MyRootLayout:
 
         Toolbar:
             id: toolbar
-            title: "Meu Bolso"
+            title: strings.app_name
             left_action_items: [['menu', lambda x: app.root.toggle_nav_drawer()]]
 
         ScreenManager:
