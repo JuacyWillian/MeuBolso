@@ -6,8 +6,9 @@ docutils==0.13.1
 idna==2.5
 Kivy==1.10.0
 Kivy-Garden==0.1.4
-kivymd==git+https://gitlab.com/kivymd/kivymd.git
+kivymd==0.1.2
 luckydonald-utils==0.53
+migrations==0.1.1
 pony==0.7.1
 pony-up==0.1.1
 Pygments==2.2.0
@@ -15,4 +16,5 @@ python-dateutil==2.6.0
 requests==2.18.1
 screen==1.0.1
 six==1.10.0
+SQLAlchemy==1.1.11
 urllib3==1.21.1

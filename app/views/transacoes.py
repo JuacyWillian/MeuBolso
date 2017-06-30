@@ -1,25 +1,19 @@
-from decimal import ROUND_DOWN
+from datetime import date
+from decimal import ROUND_DOWN, Decimal
 
 from dateutil.relativedelta import relativedelta
-from kivy.app import App
-from kivy.lang import Builder
-from kivy.properties import ObjectProperty, StringProperty, ListProperty, \
-    NumericProperty, BooleanProperty
+from kivy.properties import *
 from kivy.uix.screenmanager import Screen
-from kivy.uix.stacklayout import StackLayout
 from kivymd.date_picker import MDDatePicker
-from kivymd.dialog import MDDialog
-from kivymd.label import MDLabel
-from pony.orm import db_session, select, rollback, delete
+# from pony.orm import rollback, delete
+from sqlalchemy import or_, and_, extract, cast, Date
 
-from app.models import *
-from app.util import TELAS
-from app.views.dialogos import FrequenciaDialog, ContactDialog, \
-    ExcluirTransacaoDialogo
-from app.views.widgets import TransactionListItem, ItemParcela
+from app.util import *
+from app.views.dialogos import *
+from app.views.widgets import *
 
 kv = """
-<TransactionList>:
+<TelaTransacoes>:
     ScrollView:
         do_scroll_x: False
         MDList:
@@ -34,7 +28,7 @@ kv = """
         on_press: app.root.switch_to(TELAS.NOVA_TRANSACAO)
 
 
-<NewTransaction>:
+<TelaNovaTransacao>:
     ScrollView:
         do_scroll_x: False
         BoxLayout:
@@ -181,7 +175,7 @@ kv = """
                     on_press: root.show_choose_contact_dialog()
 
 
-<ViewTransaction>:
+<TelaVisualizarTransacao>:
     ScrollView:
         do_scroll_x: False
 
@@ -194,6 +188,7 @@ kv = """
             MDLabel:
                 id: nome
                 font_style: 'Title'
+                text: root.transacao.nome
                 size_hint_y: None
                 height: dp(60)
 
@@ -201,6 +196,7 @@ kv = """
                 id: descricao
                 font_style: 'Body1'
                 size_hint_y: None
+                # text: root.transacao.descricao
 
             GridLayout:
                 cols: 2
@@ -215,38 +211,46 @@ kv = """
                     id: lancamento
                     size_hint_x: None
                     font_style: 'Caption'
+                    text: root.transacao.lancamento.strftime("%Y/%m/%d")
 
                 MDLabel:
                     id: valor
                     size_hint_x: None
                     font_style: 'Caption'
+                    text: "R$ %.2f"%root.transacao.valor
 
                 MDLabel:
                     id: parcelado
                     font_style: 'Caption'
+                    text: "%s"%root.transacao.parcelado
 
                 MDLabel:
                     id: tipo_pagamento
                     font_style: 'Caption'
+                    text: "%s"%root.transacao.tipo_pagamento.replace('_', ' ')
 
                 MDLabel:
                     id: tipo_transacao
                     size_hint_x: None
                     font_style: 'Caption'
+                    text: "%s"%root.transacao.tipo_transacao.replace('_', ' ')
 
                 MDLabel:
                     id: frequencia
                     font_style: 'Caption'
+                    text: root.transacao.frequencia
 
                 MDLabel:
                     id: recorrente
                     size_hint_x: None
                     text: 'Tipo: '
                     font_style: 'Caption'
+                    text: "%s"%root.transacao.recorrente
 
                 MDLabel:
                     id: contato
                     font_style: 'Caption'
+                    text: root.contato.nome if root.contato else ''
 
 
             BoxLayout:
@@ -260,77 +264,56 @@ kv = """
 Builder.load_string(kv)
 
 
-class TransactionList(Screen):
+class TelaTransacoes(Screen):
     lista_transacao = ListProperty()
 
     def __init__(self, **kwargs):
-        super(TransactionList, self).__init__(**kwargs)
+        super(TelaTransacoes, self).__init__(**kwargs)
         self.app = App.get_running_app()
         self.populate_listview()
 
     def on_pre_enter(self, *args):
         toolbar = self.app.root.ids.toolbar
-        toolbar.left_action_items = [
-            ['menu', lambda x: self.app.root.toggle_nav_drawer()],
-        ]
+        toolbar.left_action_items = [['menu', lambda x: self.app.root.toggle_nav_drawer()]]
         toolbar.right_action_items = []
 
-    @db_session
     def populate_listview(self):
         lista_transacao = self.ids.transaction_list
         today = date.today()
-        for p in select(p for p in db.Parcela if (
-                        p.vencimento.year == today.year and p.vencimento.month == today.month) or (
-                        p.pago == False and p.vencimento < today)).order_by(
-            db.Parcela.vencimento)[:]:
-            lista_transacao.add_widget(TransactionListItem(p))
+        with session_scope() as session:
+            for p in session.query(Parcela).filter(or_(
+                    and_(extract('year', Parcela.vencimento) == today.year, extract('month', Parcela.vencimento) == today.month),
+                    and_(Parcela.pago == False, cast(Parcela.vencimento, Date) < cast(today, Date)))).order_by(Parcela.vencimento).all():
+                lista_transacao.add_widget(TransactionListItem(p))
+                session.expunge(p)
 
 
-class ViewTransaction(Screen):
+class TelaVisualizarTransacao(Screen):
+    transacao_id = NumericProperty()
     transacao = ObjectProperty()
+    contato = ObjectProperty()
 
-    def __init__(self, id, **kwargs):
-        super(ViewTransaction, self).__init__(**kwargs)
+    def __init__(self, transacao_id, **kwargs):
         self.app = App.get_running_app()
-        with db_session:
-            self.transacao = Transacao.get(id=id)
+        self.transacao_id = transacao_id
+        self.load_data()
+        super(TelaVisualizarTransacao, self).__init__(**kwargs)
+
+    def load_data(self, ):
+        with session_scope() as session:
+            self.transacao = session.query(Transacao).filter_by(id=self.transacao_id).first()
+            self.contato = self.transacao.contato
+            session.expunge_all()
 
     def on_pre_enter(self, *args):
         toolbar = self.app.root.ids['toolbar']
         toolbar.left_action_items = [
-            ['arrow-left',
-             lambda x: self.app.root.switch_to(TELAS.LISTA_TRANSACAO)]]
+            ['arrow-left', lambda x: self.app.root.switch_to(TELAS.LISTA_TRANSACAO)]]
 
         toolbar.right_action_items = [
-            ['pencil',lambda x: self.app.root.switch_to(TELAS.EDITAR_TRANSACAO, id=self.transacao.id)],
+            ['pencil', lambda x: self.app.root.switch_to(
+                TELAS.EDITAR_TRANSACAO, transacao_id=self.transacao.id)],
             ['delete', lambda x: self.remove()]]
-
-    @db_session
-    def on_transacao(self, instance, value):
-        lista_parcelas = self.ids.parcel_list
-        lista_parcelas.clear_widgets()
-        # transacao_fields = [
-        #     'nome', 'descricao', 'valor', 'lancamento', 'parcelado',
-        #     'tipo_transacao', 'contato', 'tipo_pagamento',
-        #     'recorrente', 'frequencia',
-        # ]
-        #
-        # for field in transacao_fields:
-        #     self.ids[field].text = str(getattr(self.transacao, field, None))
-
-        self.ids.nome.text = self.transacao.nome
-        self.ids.descricao.text = self.transacao.descricao
-        self.ids.valor.text = "Valor:\n%.2f" % self.transacao.valor
-        self.ids.lancamento.text = "Lançamento:\n%s" % self.transacao.lancamento.strftime("%Y/%m/%d")
-        self.ids.parcelado.text = "Parcelado:\n%s" % 'Sim' if self.transacao.parcelado else 'Não'
-        self.ids.tipo_transacao.text = "Transação:\n%s" % self.transacao.tipo_transacao
-        self.ids.tipo_pagamento.text = "Pagamento:\n%s" % self.transacao.tipo_pagamento.replace('_', ' ')
-        self.ids.recorrente.text = "Recorrente:\n%s" % 'Sim' if self.transacao.recorrente else 'Não'
-        self.ids.frequencia.text = "Frequencia:\n%s" % self.transacao.frequencia
-        self.ids.contato.text = "Contato:\n%s" % self.transacao.contato.nome if self.transacao.contato else ''
-
-        for parcela in self.transacao.parcelas.order_by(db.Parcela.vencimento):
-            lista_parcelas.add_widget(ItemParcela(parcela))
 
     def remove(self):
         self.excluirdialog = ExcluirTransacaoDialogo(self, action=self.confirm_delete)
@@ -338,13 +321,15 @@ class ViewTransaction(Screen):
 
     def confirm_delete(self, *args):
         self.excluirdialog.dismiss()
-        with db_session:
-            delete(t for t in db.Transacao if t.id == self.transacao.id)
 
+        with session_scope() as session:
+            transacao = session.query(Transacao).filter_by(id=self.transacao_id).first()
+            session.delete(transacao)
+            session.commit()
         self.app.root.switch_to(TELAS.LISTA_TRANSACAO)
 
 
-class NewTransaction(Screen):
+class TelaNovaTransacao(Screen):
     nome = StringProperty()
     descricao = StringProperty()
     valor = NumericProperty()
@@ -365,16 +350,13 @@ class NewTransaction(Screen):
     frequencia_dialog = None
 
     def __init__(self, **kwargs):
-        super(NewTransaction, self).__init__(**kwargs)
+        super(TelaNovaTransacao, self).__init__(**kwargs)
         self.app = App.get_running_app()
 
     def on_pre_enter(self, *args):
         toolbar = self.app.root.ids.toolbar
-        toolbar.left_action_items = [['arrow-left',
-                                      lambda x: self.app.root.switch_to(
-                                          TELAS.LISTA_TRANSACAO)]]
-        toolbar.right_action_items = [
-            ['check', lambda x: self.salvar_transacao()]]
+        toolbar.left_action_items = [['arrow-left', lambda x: self.app.root.switch_to(TELAS.LISTA_TRANSACAO)]]
+        toolbar.right_action_items = [['check', lambda x: self.salvar_transacao()]]
 
     def show_datepicker(self, value):
         self.mywidget = self.ids[value]
@@ -405,7 +387,6 @@ class NewTransaction(Screen):
         else:
             frequencia.text = ''
 
-    @db_session
     def salvar_transacao(self):  # todo
 
         # List of errors
@@ -475,8 +456,11 @@ class NewTransaction(Screen):
         if num_parcelas < 1:
             erros.append("O Campo 'parcela' não pode ser menor que 1!")
 
-        if contato:
-            contato = Contato.get(id=contato.id)
+        with session_scope() as session:
+            if contato:
+                contato = session.query(Contato).filter_by(id=self.contato.id).first()
+                session.commit()
+                session.expunge(contato)
 
         # Showing dialog with errors found
         if erros:
@@ -493,13 +477,10 @@ class NewTransaction(Screen):
             dialog.open()
 
         else:
-            try:
-                # Creating a Ticket
-                # num_parcelas = num_parcelas
-                # valor = valor
+            transacao = None
+            with session_scope() as session:
 
-                parcel_value = (valor / num_parcelas).quantize(Decimal('1.00'),
-                                                               rounding=ROUND_DOWN)
+                parcel_value = (valor / num_parcelas).quantize(Decimal('1.00'), rounding=ROUND_DOWN)
                 excedent = (valor - (parcel_value * num_parcelas)).quantize(
                     Decimal('1.00'), rounding=ROUND_DOWN)
 
@@ -509,32 +490,45 @@ class NewTransaction(Screen):
                     parcelado=parcelado, tipo_pagamento=tipo_pagamento.name,
                     recorrente=recorrente, frequencia=frequencia
                 )
+                session.add(transacao)
+                session.commit()
 
                 # Creating Parcels of the Ticket
                 if num_parcelas == 1:
-                    transacao.parcelas.create(
+                    parcela = Parcela(
                         nome="%s %d/%d" % (nome, 1, num_parcelas),
                         valor=valor, vencimento=vencimento, pago=False)
+                    session.add(parcela)
+                    transacao.parcelas.append(parcela)
+                    session.commit()
 
                 else:
                     for p in range(num_parcelas):
-                        if p == num_parcelas - 1:
-                            parcel_value += excedent
+                        if p == num_parcelas - 1: parcel_value += excedent
                         nExpiration = vencimento + relativedelta(months=p)
-                        transacao.parcelas.create(
+                        parcela = Parcela(
                             nome="%s %d/%d" % (nome, p + 1, num_parcelas),
                             valor=parcel_value, vencimento=nExpiration,
                             pago=False)
-
-                        # Changing to IncomeList
-            except Exception as err:
-                rollback()
-                raise err
-            finally:
-                self.app.root.switch_to(TELAS.LISTA_TRANSACAO)
+                        session.add(parcela)
+                        transacao.parcelas.append(parcela)
+                        session.commit()
+                self.app.root.switch_to(TELAS.DETALHE_TRANSACAO, transacao_id=transacao.id)
 
 
-class EditTransaction(Screen):
-    def __init__(self, **kwargs):
-        super(EditTransaction, self).__init__(**kwargs)
-        # todo
+class TelaEditarTransacao(Screen):  # todo
+    transacao_id = NumericProperty()
+    transacao = ObjectProperty()
+    contato = ObjectProperty()
+
+    def __init__(self, transacao_id, **kwargs):
+        self.app = App.get_running_app()
+        self.transacao_id = transacao_id
+        self.load_data()
+        super(TelaEditarTransacao, self).__init__(**kwargs)
+
+    def load_data(self):
+        with session_scope() as session:
+            self.transacao = session.query(Transacao).filter_by(id=self.transacao_id).first()
+            self.contato = self.transacao.contato
+            session.expunge_all()

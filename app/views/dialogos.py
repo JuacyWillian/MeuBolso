@@ -7,7 +7,7 @@ from kivymd.label import MDLabel
 from kivymd.list import OneLineListItem, MDList
 from pony.orm import db_session, select
 
-from app.models import db
+from app.models import *
 from app.util import FREQUENCIA
 
 kv = """
@@ -50,10 +50,10 @@ class ContactDialog(MDDialog):
                                action=lambda *x: self.dismiss())
 
     def load_contacts(self, ):
-        with db_session:
-            for c in select(
-                    c for c in db.Contato).order_by(db.Contato.nome)[:]:
+        with session_scope() as session:
+            for c in session.query(Contato).order_by(Contato.nome).all():
                 self.content.add_widget(ChooseContactItem(self, c))
+                session.expunge(c)
 
 
 class FrequenciaItem(OneLineListItem):
