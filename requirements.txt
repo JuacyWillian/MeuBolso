@@ -6,7 +6,7 @@ docutils==0.13.1
 idna==2.5
 Kivy==1.10.0
 Kivy-Garden==0.1.4
-kivymd==0.1.2
+git+https://gitlab.com/kivymd/kivymd.git
 luckydonald-utils==0.53
 migrations==0.1.1
 pony==0.7.1

@@ -5,7 +5,6 @@ from kivy.uix.stacklayout import StackLayout
 from kivymd.dialog import MDDialog
 from kivymd.label import MDLabel
 from kivymd.list import OneLineListItem, MDList
-from pony.orm import db_session, select
 
 from app.models import *
 from app.util import FREQUENCIA
@@ -50,10 +49,13 @@ class ContactDialog(MDDialog):
                                action=lambda *x: self.dismiss())
 
     def load_contacts(self, ):
-        with session_scope() as session:
-            for c in session.query(Contato).order_by(Contato.nome).all():
-                self.content.add_widget(ChooseContactItem(self, c))
-                session.expunge(c)
+        for c in db(ContatoModel).select(orderby=ContatoModel.nome):
+            self.content.add_widget(ChooseContactItem(self, c))
+
+        # with session_scope() as session:
+        #     for c in session.query(Contato).order_by(Contato.nome).all():
+        #         self.content.add_widget(ChooseContactItem(self, c))
+        #         session.expunge(c)
 
 
 class FrequenciaItem(OneLineListItem):
@@ -79,12 +81,12 @@ class FrequenciaDialog(MDDialog):
 
         self.content = MDList()
         self.load_options()
-        self.add_action_button(text="Cancelar",
-                               action=lambda *x: self.dismiss())
+        self.add_action_button(text="Cancelar", action=lambda *x: self.dismiss())
 
     def load_options(self, ):
         for item in FREQUENCIA:
             self.content.add_widget(FrequenciaItem(self, item))
+
 
 
 class ExcluirTransacaoDialogo(MDDialog):

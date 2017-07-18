@@ -1,0 +1,45 @@
+todo list
+
+Tela Transacoes
+	- melhorar o design
+OK	- Adicionar suporte a visualização das parcelas
+OK	- Mudar ActionButtons para FloatActionButtons
+	- Adicionar suporte a edição de parcelas
+
+Tela Editar Transacao
+	- Permitir alteração das transacoes
+OK	- permitir pagamento das parcelas
+
+Tela Inicial
+	- Resumo das atividades transacoes do mes corrente
+
+Tela Configurações
+	- falta criar
+
+Tela Sobre
+	- falta criar
+
+Tela Creditos
+	- falta criar
+
+Filtros para a tela de Transacoes
+!!	- filtrar por data, por contato, por valor, por situação(pago, não pago)
+
+Melhorar a Tela de Detalhes do Contato
+	- adicionar a lista de transacoes do contato
+
+Contato
+	- Adicionar suporte a multiplos telefones, emails e endereços
+
+Transacao
+	- Adicionar suporte a transacoes recorrentes
+
+Localização
+	- Adicionar suporte a multiplos países
+
+Internacionalização
+	- Adicionar suporte a Multiplos Idiomas
+	- Traduzir o app para os idiomas principais (en, pt, es, fr, it, ru)
+
+Icones e Imagens:
+	- falta criar

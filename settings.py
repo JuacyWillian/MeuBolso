@@ -11,6 +11,7 @@ DATABASE_ARGS = {'create_db': True}
 
 # Languages
 LANGUAGE = 'pt-br'
+LOCALE = 'pt_BR'
 TIMEZONE = 'America/Sao_Paulo'
 
 # Fonts

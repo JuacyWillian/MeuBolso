@@ -1,4 +1,12 @@
 {
   "app_name": "Minhas Transações",
-  "app_description": "Mais Um app que promete ajudar você a controlar suas dívidas."
+  "app_description": "Mais Um app que promete ajudar você a controlar suas dívidas.",
+  "inicio": "início",
+  "contatos": "contatos",
+  "transacoes": "transações",
+  "configuracoes": "configurações",
+  "sobre": "sobre",
+  "sair": "sair",
+  "novo_contato": "novo contato",
+  "editar_contato": "editar contato"
 }

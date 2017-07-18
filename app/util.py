@@ -33,3 +33,16 @@ class FREQUENCIA(Enum):
     TRIMESTRALMENTE = 4
     SEMESTRALMENTE = 5
     ANUALMENTE = 6
+
+
+class PARCELA_SORT(Enum):
+    POR_VENCIMENTO = 0
+    POR_VALOR = 1
+    POR_CONTATO = 2
+
+
+class PARCELA_FILTER(Enum):
+    VENCIDAS = 0
+    PAGAS = 1
+    FUTURAS = 2
+    EM_DEBITO = 3

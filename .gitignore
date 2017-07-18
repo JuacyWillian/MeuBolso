@@ -8,5 +8,6 @@
 
 __pycache__/
 .idea/
+.ropeproject/
 
 *.log

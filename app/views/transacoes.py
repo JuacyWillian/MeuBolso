@@ -2,15 +2,20 @@ from datetime import date
 from decimal import ROUND_DOWN, Decimal
 
 from dateutil.relativedelta import relativedelta
-from kivy.properties import *
+from kivy.app import App
+from kivy.lang import Builder
+from kivy.properties import (NumericProperty, ObjectProperty, ListProperty, )
 from kivy.uix.screenmanager import Screen
+from kivy.uix.stacklayout import StackLayout
 from kivymd.date_picker import MDDatePicker
-# from pony.orm import rollback, delete
-from sqlalchemy import or_, and_, extract, cast, Date
+from kivymd.dialog import MDDialog
+from kivymd.label import MDLabel
 
-from app.util import *
-from app.views.dialogos import *
-from app.views.widgets import *
+from app.lang import s
+from app.models import parcelasDefault, db, TransacaoModel, ParcelaModel, ContatoModel
+from app.util import TELAS, TIPO_TRANSACAO, TIPO_PAGAMENTO, FREQUENCIA
+from app.views.dialogos import ExcluirTransacaoDialogo, ContactDialog, FrequenciaDialog
+from app.views.widgets import TransactionListItem, ItemParcela
 
 kv = """
 <TelaTransacoes>:
@@ -122,6 +127,15 @@ kv = """
                     disabled: False if recorrente.active else True
                     on_focus: root.show_frequency_dialog()
 
+                MDTextField:
+                    id: freq_qtd
+                    hint_text: "Quantidade:"
+                    size_hint_x: None
+                    width: '100dp'
+                    input_filter: 'int'
+                    required: True if recorrente.active else False
+                    disabled: False if recorrente.active else True
+
             BoxLayout:
                 size_hint_y: None
                 height: self.minimum_height
@@ -173,6 +187,167 @@ kv = """
                     size_hint: None, None
                     icon: 'account-box-outline'
                     on_press: root.show_choose_contact_dialog()
+                    
+    # MDFloatingActionButton:
+    #     id: float_act_btn
+    #     icon: 'content-save'
+    #     opposite_colors: True
+    #     elevation_normal: 8
+    #     pos_hint: {'center_x': 0.85, 'center_y': 0.1}
+    #     on_press: root.salvar_transacao()
+
+
+<TelaEditarTransacao>:
+    ScrollView:
+        do_scroll_x: False
+        BoxLayout:
+            size_hint_y: None
+            height: self.minimum_height
+            orientation: 'vertical'
+            padding: dp(10), dp(10)
+            spacing: dp(10)
+
+            MDTextField:
+                id: nome
+                hint_text: "Nome: "
+                text: root.transacao.nome
+                required: True
+
+            MDTextField:
+                id: descricao
+                multiline: True
+                text: root.transacao.descricao
+                hint_text: 'Descrição: '
+
+            BoxLayout:
+                size_hint_y: None
+                height: self.minimum_height
+                MDTextField:
+                    id: lancamento
+                    hint_text: 'Data: '
+                    text: format_date(root.transacao.lancamento, locale=app.locale)
+                    required: True
+
+                MDIconButton:
+                    size_hint: None, None
+                    icon: 'calendar'
+                    on_press: root.show_datepicker('lancamento')
+
+            BoxLayout:
+                size_hint_y: None
+                height: self.minimum_height
+                MDTextField:
+                    id: vencimento
+                    hint_text: 'Validade: '
+                    # text: format_date(root.transacao.vencimento, locale=app.locale)
+                    required: True
+
+                MDIconButton:
+                    size_hint: None, None
+                    icon: 'calendar'
+                    on_press: root.show_datepicker('vencimento')
+
+            BoxLayout:
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: '10dp'
+
+                MDTextField:
+                    id: valor
+                    hint_text: "Valor: "
+                    input_filter: 'float'
+                    input_type: 'number'
+                    required: True
+                    text: str(root.transacao.valor)
+
+                MDCheckbox:
+                    id: parcelamento
+                    size_hint_x: None #, None
+                    size: '24dp', '24dp'
+                    active: True if root.transacao.parcelado else False
+
+                MDTextField:
+                    id: nparcelas
+                    hint_text: "Parcelas:"
+                    size_hint_x: None
+                    width: '100dp'
+                    required: True
+                    input_filter: 'int'
+                    text: str(len(root.parcelas))
+                    disabled: False if parcelamento.active else True
+
+            BoxLayout:
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: '10dp'
+
+                MDCheckbox:
+                    id: recorrente
+                    size_hint_x: None #, None
+                    size: '24dp', '24dp'
+                    active: True if root.transacao.recorrente else False
+
+                MDTextField:
+                    id: frequencia
+                    hint_text: "Frequência:"
+                    required: True
+                    text: root.transacao.frequencia if root.transacao.recorrente else ''
+                    disabled: False if recorrente.active else True
+                    on_focus: root.show_frequency_dialog()
+
+            BoxLayout:
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: dp(10)
+
+                MDLabel:
+                    # id: type_ticket
+                    font_style: 'Caption'
+                    font_size: '16dp'
+                    text: 'Receita'
+                    disabled: False if switch.active else True
+                    size_hint_x: .4
+                    size_hint_y: None
+                    halign: 'center'
+                    height: '24dp'
+
+                MDSwitch:
+                    id: switch
+                    size_hint: None, None
+                    size: '48dp', '24dp'
+                    height: '24dp'
+
+                MDLabel:
+                    # id: type_ticket
+                    font_style: 'Caption'
+                    font_size: '16dp'
+                    text: 'Despesa'
+                    disabled: True if switch.active else False
+                    size_hint_x: .4
+                    size_hint_y: None
+                    halign: 'center'
+                    height: '24dp'
+
+            BoxLayout:
+                size_hint_y: None
+                height: self.minimum_height
+                MDTextField:
+                    id: contato
+                    hint_text: 'Contato:'
+                    text: root.transacao.nome if root.contato else ''
+                    disabled: True
+                    
+
+                MDIconButton:
+                    size_hint: None, None
+                    icon: 'close'
+                    on_press: root.contato = []
+                    disabled: True if contato.text == '' else False
+
+                MDIconButton:
+                    size_hint: None, None
+                    icon: 'account-box-outline'
+                    on_press: root.show_choose_contact_dialog()
 
 
 <TelaVisualizarTransacao>:
@@ -196,7 +371,7 @@ kv = """
                 id: descricao
                 font_style: 'Body1'
                 size_hint_y: None
-                # text: root.transacao.descricao
+                text: root.transacao.descricao
 
             GridLayout:
                 cols: 2
@@ -238,7 +413,7 @@ kv = """
                 MDLabel:
                     id: frequencia
                     font_style: 'Caption'
-                    text: root.transacao.frequencia
+                    text: root.transacao.frequencia if root.transacao.frequencia else ''
 
                 MDLabel:
                     id: recorrente
@@ -252,13 +427,16 @@ kv = """
                     font_style: 'Caption'
                     text: root.contato.nome if root.contato else ''
 
-
-            BoxLayout:
-                size_hint_y: None
-                orientation: 'vertical'
-                height: self.minimum_height
-                spacing: dp(5)
-                id: parcel_list
+            MDList:
+                id: lista_parcelas
+                
+    # MDFloatingActionButton:
+    #     id: float_act_btn
+    #     icon: 'content-save'
+    #     opposite_colors: True
+    #     elevation_normal: 8
+    #     pos_hint: {'center_x': 0.85, 'center_y': 0.3}
+    #     on_press: self.salvar_transacao()
 """
 
 Builder.load_string(kv)
@@ -270,22 +448,22 @@ class TelaTransacoes(Screen):
     def __init__(self, **kwargs):
         super(TelaTransacoes, self).__init__(**kwargs)
         self.app = App.get_running_app()
-        self.populate_listview()
+        self.populate_listview(self.load_items())
 
     def on_pre_enter(self, *args):
         toolbar = self.app.root.ids.toolbar
+        toolbar.title = s.transacoes.capitalize()
         toolbar.left_action_items = [['menu', lambda x: self.app.root.toggle_nav_drawer()]]
         toolbar.right_action_items = []
 
-    def populate_listview(self):
+    def load_items(self):
+        return parcelasDefault()
+
+    def populate_listview(self, items):
         lista_transacao = self.ids.transaction_list
-        today = date.today()
-        with session_scope() as session:
-            for p in session.query(Parcela).filter(or_(
-                    and_(extract('year', Parcela.vencimento) == today.year, extract('month', Parcela.vencimento) == today.month),
-                    and_(Parcela.pago == False, cast(Parcela.vencimento, Date) < cast(today, Date)))).order_by(Parcela.vencimento).all():
-                lista_transacao.add_widget(TransactionListItem(p))
-                session.expunge(p)
+        lista_transacao.clear_widgets()
+        for p in items:
+            lista_transacao.add_widget(TransactionListItem(p))
 
 
 class TelaVisualizarTransacao(Screen):
@@ -295,15 +473,9 @@ class TelaVisualizarTransacao(Screen):
 
     def __init__(self, transacao_id, **kwargs):
         self.app = App.get_running_app()
-        self.transacao_id = transacao_id
-        self.load_data()
+        self.transacao = TransacaoModel[transacao_id]
         super(TelaVisualizarTransacao, self).__init__(**kwargs)
-
-    def load_data(self, ):
-        with session_scope() as session:
-            self.transacao = session.query(Transacao).filter_by(id=self.transacao_id).first()
-            self.contato = self.transacao.contato
-            session.expunge_all()
+        self.carregar_parcelas(self.load_items())
 
     def on_pre_enter(self, *args):
         toolbar = self.app.root.ids['toolbar']
@@ -311,52 +483,42 @@ class TelaVisualizarTransacao(Screen):
             ['arrow-left', lambda x: self.app.root.switch_to(TELAS.LISTA_TRANSACAO)]]
 
         toolbar.right_action_items = [
-            ['pencil', lambda x: self.app.root.switch_to(
-                TELAS.EDITAR_TRANSACAO, transacao_id=self.transacao.id)],
-            ['delete', lambda x: self.remove()]]
+            ['pencil', lambda x: self.app.root.switch_to(TELAS.EDITAR_TRANSACAO,
+                                                         transacao_id=self.transacao.id)],
+            ['delete', lambda x: self.remover_transacao()]]
 
-    def remove(self):
-        self.excluirdialog = ExcluirTransacaoDialogo(self, action=self.confirm_delete)
+    def load_items(self):
+        return db(ParcelaModel.transacao_id == self.transacao_id).select(
+            orderby=ParcelaModel.vencimento)
+
+    def carregar_parcelas(self, items):
+        lista_parcelas = self.ids.lista_parcelas
+        for p in items:
+            lista_parcelas.add_widget(ItemParcela(p))
+
+    def remover_transacao(self):
+        self.excluirdialog = ExcluirTransacaoDialogo(self, action=self.confirmar_remocao)
         self.excluirdialog.open()
 
-    def confirm_delete(self, *args):
+    def confirmar_remocao(self, *args):
         self.excluirdialog.dismiss()
 
-        with session_scope() as session:
-            transacao = session.query(Transacao).filter_by(id=self.transacao_id).first()
-            session.delete(transacao)
-            session.commit()
+        db(TransacaoModel.id == self.transacao.id).delete()
+        db.commit()
+
         self.app.root.switch_to(TELAS.LISTA_TRANSACAO)
 
 
 class TelaNovaTransacao(Screen):
-    nome = StringProperty()
-    descricao = StringProperty()
-    valor = NumericProperty()
-
-    lancamento = ObjectProperty()
-    vencimento = ObjectProperty()
-
-    tipo_transacao = ObjectProperty()
-    tipo_pagamento = ObjectProperty()
-    frequencia = ObjectProperty()
-
-    parcelado = BooleanProperty()
-    recorrente = BooleanProperty()
-
-    contato = ObjectProperty()
-
-    dialog = None
-    frequencia_dialog = None
-
     def __init__(self, **kwargs):
         super(TelaNovaTransacao, self).__init__(**kwargs)
         self.app = App.get_running_app()
 
     def on_pre_enter(self, *args):
         toolbar = self.app.root.ids.toolbar
-        toolbar.left_action_items = [['arrow-left', lambda x: self.app.root.switch_to(TELAS.LISTA_TRANSACAO)]]
-        toolbar.right_action_items = [['check', lambda x: self.salvar_transacao()]]
+        toolbar.left_action_items = [
+            ['arrow-left', lambda x: self.app.root.switch_to(TELAS.LISTA_TRANSACAO)]]
+        toolbar.right_action_items = [['content-save', lambda x: self.salvar_transacao()]]
 
     def show_datepicker(self, value):
         self.mywidget = self.ids[value]
@@ -395,72 +557,65 @@ class TelaNovaTransacao(Screen):
         # Getting data of fields
         nome = self.ids.nome.text
         descricao = self.ids.descricao.text
-
         lancamento = self.ids.lancamento.text
         vencimento = self.ids.vencimento.text
-
-        valor = Decimal(self.ids.valor.text).quantize(
-            Decimal('1.00'), rounding=ROUND_DOWN)
-
+        valor = Decimal(self.ids.valor.text).quantize(Decimal('1.00'), rounding=ROUND_DOWN)
         parcelado = self.ids.parcelamento.active
         num_parcelas = int(self.ids.nparcelas.text)
-
         recorrente = self.ids.recorrente.active
         frequencia = self.ids.frequencia.text
-
+        freq_qtd = self.ids.freq_qtd.text
         tipo_transacao = TIPO_TRANSACAO.RECEITA if self.ids.switch.active else TIPO_TRANSACAO.DESPESA
         tipo_pagamento = TIPO_PAGAMENTO.A_PRAZO if parcelado else TIPO_PAGAMENTO.A_VISTA
-
         contato = self.contato
 
         # Validating fields
-        if nome in ['', ' ', None]:
-            erros.append("O Campo 'nome' é obrigatório!")
-
+        if nome in ['', ' ', None]: erros.append("O Campo 'nome' é obrigatório!")
         if lancamento in ['', ' ', None]:
             erros.append("O Campo 'data' é obrigatório!")
-
         else:
             try:
-                lancamento = date(
-                    *[int(f) for f in self.ids.lancamento.text.split('-')])
-
+                lancamento = date(*[int(f) for f in self.ids.lancamento.text.split('-')])
             except:
-                erros.append(
-                    "formato de data inválido para 'data'. \nClique no icone ao lado >>")
+                erros.append("formato de data inválido para 'data'. \nClique no icone ao lado >>")
 
         if vencimento in ['', ' ', None]:
             erros.append("O Campo 'validade' é obrigatório!")
-
         else:
             try:
-                vencimento = date(
-                    *[int(f) for f in self.ids.vencimento.text.split('-')])
-
+                vencimento = date(*[int(f) for f in self.ids.vencimento.text.split('-')])
             except:
                 erros.append(
-                    "Formato de data inválido para 'validade'. \nClique no icone ao lado >>")
+                    "Formato de data inválido para 'validade'.\nClique no icone ao lado >>")
 
         try:
             diferenca = vencimento - lancamento
-            if diferenca.days < 0:
-                erros.append(
-                    "A 'validade' não pode ser menor que a 'data'")
-
+            if diferenca.days < 0: erros.append("A 'validade' não pode ser menor que a 'data'")
         except:
             pass
 
-        if valor < 0:
-            erros.append("O Campo 'valor' não pode ser 0 ou menos!")
+        if valor < 0: erros.append("O Campo 'valor' não pode ter valor negativo!")
 
-        if num_parcelas < 1:
-            erros.append("O Campo 'parcela' não pode ser menor que 1!")
+        if recorrente and parcelado:
+            erros.append("A transação não pode ser parcelada e recorrente ao mesmo tempo.\n"
+                         "Marque apenas uma das opções.")
 
-        with session_scope() as session:
-            if contato:
-                contato = session.query(Contato).filter_by(id=self.contato.id).first()
-                session.commit()
-                session.expunge(contato)
+        if parcelado:
+            if num_parcelas < 1: erros.append("O Campo 'parcela' não pode ser menor que 1!")
+        else:
+            num_parcelas = 1
+
+        if not recorrente:
+            frequencia = None
+            freq_qtd = None
+        else:
+            if freq_qtd in ('', None) or int(freq_qtd) < 2:
+                erros.append("O Campo 'nome' é obrigatório!\n"
+                             "E não pode ser inferior a 2.")
+        try:
+            contato = ContatoModel[self.contato.id]
+        except:
+            pass
 
         # Showing dialog with errors found
         if erros:
@@ -477,43 +632,66 @@ class TelaNovaTransacao(Screen):
             dialog.open()
 
         else:
-            transacao = None
-            with session_scope() as session:
+            transacao_id = None
 
-                parcel_value = (valor / num_parcelas).quantize(Decimal('1.00'), rounding=ROUND_DOWN)
-                excedent = (valor - (parcel_value * num_parcelas)).quantize(
-                    Decimal('1.00'), rounding=ROUND_DOWN)
+            parcel_value = (valor / num_parcelas).quantize(Decimal('1.00'), rounding=ROUND_DOWN)
+            excedent = (valor - (parcel_value * num_parcelas)).quantize(
+                Decimal('1.00'), rounding=ROUND_DOWN)
 
-                transacao = Transacao(
-                    nome=nome, descricao=descricao, valor=valor,
-                    lancamento=lancamento, tipo_transacao=tipo_transacao.name,
-                    parcelado=parcelado, tipo_pagamento=tipo_pagamento.name,
-                    recorrente=recorrente, frequencia=frequencia
+            transacao_id = TransacaoModel.insert(
+                nome=nome, descricao=descricao, valor=valor,
+                lancamento=lancamento, tipo_transacao=tipo_transacao.name,
+                parcelado=parcelado, tipo_pagamento=tipo_pagamento.name,
+                recorrente=recorrente, frequencia=frequencia
+            )
+            db.commit()
+
+            # Creating Parcels of the Ticket
+            if not parcelado and not recorrente:
+                ParcelaModel.insert(
+                    nome=nome, valor=valor, vencimento=vencimento, pago=False,
+                    transacao_id=transacao_id
                 )
-                session.add(transacao)
-                session.commit()
+                db.commit()
+            elif parcelado:
+                for p in range(num_parcelas):
+                    if p == num_parcelas - 1: parcel_value += excedent
+                    nExpiration = vencimento + relativedelta(months=p)
+                    ParcelaModel.insert(
+                        nome="{nome} {parcela}/{total}".format(
+                            nome=nome, parcela=p + 1, total=num_parcelas),
+                        valor=parcel_value, vencimento=nExpiration, pago=False,
+                        transacao_id=transacao_id
+                    )
+                    db.commit()
+            elif recorrente:
+                for req in range(int(freq_qtd)):
+                    periodo = self.calcula_periodo(frequencia, req)
+                    nExpiration = vencimento + periodo
+                    ParcelaModel.insert(
+                        nome="{nome} {mes}/{ano}".format(
+                            nome=nome, mes=nExpiration.month, ano=nExpiration.year),
+                        valor=valor, vencimento=nExpiration, pago=False,
+                        transacao_id=transacao_id
+                    )
+                    db.commit()
+            self.app.root.switch_to(TELAS.DETALHE_TRANSACAO, transacao_id=transacao_id)
 
-                # Creating Parcels of the Ticket
-                if num_parcelas == 1:
-                    parcela = Parcela(
-                        nome="%s %d/%d" % (nome, 1, num_parcelas),
-                        valor=valor, vencimento=vencimento, pago=False)
-                    session.add(parcela)
-                    transacao.parcelas.append(parcela)
-                    session.commit()
-
-                else:
-                    for p in range(num_parcelas):
-                        if p == num_parcelas - 1: parcel_value += excedent
-                        nExpiration = vencimento + relativedelta(months=p)
-                        parcela = Parcela(
-                            nome="%s %d/%d" % (nome, p + 1, num_parcelas),
-                            valor=parcel_value, vencimento=nExpiration,
-                            pago=False)
-                        session.add(parcela)
-                        transacao.parcelas.append(parcela)
-                        session.commit()
-                self.app.root.switch_to(TELAS.DETALHE_TRANSACAO, transacao_id=transacao.id)
+    def calcula_periodo(self, frequencia, passo):
+        if frequencia == FREQUENCIA.DIARIAMENTE.name:
+            return relativedelta(days=1 * passo)
+        elif frequencia == FREQUENCIA.SEMANALMENTE.name:
+            return relativedelta(weeks=1 * passo)
+        elif frequencia == FREQUENCIA.MENSALMENTE.name:
+            return relativedelta(months=1 * passo)
+        elif frequencia == FREQUENCIA.BIMESTRALMENTE.name:
+            return relativedelta(months=2 * passo)
+        elif frequencia == FREQUENCIA.TRIMESTRALMENTE.name:
+            return relativedelta(months=3 * passo)
+        elif frequencia == FREQUENCIA.SEMESTRALMENTE.name:
+            return relativedelta(months=6 * passo)
+        elif frequencia == FREQUENCIA.ANUALMENTE.name:
+            return relativedelta(years=1 * passo)
 
 
 class TelaEditarTransacao(Screen):  # todo
@@ -528,7 +706,6 @@ class TelaEditarTransacao(Screen):  # todo
         super(TelaEditarTransacao, self).__init__(**kwargs)
 
     def load_data(self):
-        with session_scope() as session:
-            self.transacao = session.query(Transacao).filter_by(id=self.transacao_id).first()
-            self.contato = self.transacao.contato
-            session.expunge_all()
+        self.transacao = db(TransacaoModel.id == self.transacao_id).select().first()
+        self.contato = self.transacao.contato
+        self.parcelas = self.transacao.parcelas.select()

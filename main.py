@@ -1,22 +1,21 @@
-import json
-
+from babel import Locale
 from kivy.app import App
 from kivy.core.text import LabelBase
-from kivy.properties import StringProperty
+from kivy.properties import ObjectProperty
 from kivymd.navigationdrawer import NavigationLayout
 from kivymd.theming import ThemeManager
-from sqlalchemy.orm import sessionmaker
 
-from app.models import Base, db, Contato
+from app.models import db
 from app.util import TELAS
 from app.views.configuracao import Configuracao
-from app.views.contatos import TelaContatos, TelaEditarContato, TelaNovoContato, \
-    TelaVisualizarContato
+from app.views.contatos import (TelaContatos, TelaEditarContato, TelaNovoContato,
+                                TelaVisualizarContato)
 from app.views.inicio import Home
 from app.views.sobre import Sobre
-from app.views.transacoes import TelaNovaTransacao, TelaTransacoes, TelaVisualizarTransacao
+from app.views.transacoes import (TelaNovaTransacao, TelaTransacoes, TelaVisualizarTransacao,
+                                  TelaEditarTransacao)
 from iconfonts import create_fontdict_file, register
-from settings import *
+from settings import ICONFONTS, FONTS, LOCALE
 
 for font in ICONFONTS:
     create_fontdict_file(font['css'], font['fontd'])
@@ -42,12 +41,13 @@ class MyRootLayout(NavigationLayout):
             self.ids.scr_mngr.switch_to(TelaNovoContato(name=screen.name))
 
         elif screen == TELAS.DETALHE_CONTATO:
-            contato = kwargs.get('contato', None)
-            self.ids.scr_mngr.switch_to(TelaVisualizarContato(name=screen.name, contato=contato))
+            contato_id = kwargs.get('contato_id', None)
+            self.ids.scr_mngr.switch_to(
+                TelaVisualizarContato(name=screen.name, contato_id=contato_id))
 
         elif screen == TELAS.EDITAR_CONTATO:
-            contato = kwargs.get('contato', None)
-            self.ids.scr_mngr.switch_to(TelaEditarContato(name=screen.name, contato=contato))
+            contato_id = kwargs.get('contato_id', None)
+            self.ids.scr_mngr.switch_to(TelaEditarContato(name=screen.name, contato_id=contato_id))
 
         elif screen == TELAS.LISTA_TRANSACAO:
             self.ids.scr_mngr.switch_to(TelaTransacoes(name=screen.name))
@@ -57,7 +57,13 @@ class MyRootLayout(NavigationLayout):
 
         elif screen == TELAS.DETALHE_TRANSACAO:
             transacao_id = kwargs.get('transacao_id', None)
-            self.ids.scr_mngr.switch_to(TelaVisualizarTransacao(name=screen.name, transacao_id=transacao_id))
+            self.ids.scr_mngr.switch_to(
+                TelaVisualizarTransacao(name=screen.name, transacao_id=transacao_id))
+
+        elif screen == TELAS.EDITAR_TRANSACAO:
+            transacao_id = kwargs.get('transacao_id', None)
+            self.ids.scr_mngr.switch_to(
+                TelaEditarTransacao(name=screen.name, transacao_id=transacao_id))
 
         elif screen == TELAS.CONFIGURACAO:
             self.ids.scr_mngr.switch_to(Configuracao(name=screen.name))
@@ -68,48 +74,12 @@ class MyRootLayout(NavigationLayout):
 
 class MeuBolsoApp(App):
     theme_cls = ThemeManager()
-    basedir = StringProperty()
+    locale = ObjectProperty()
 
-    # def __init__(self, **kwargs):
-    #     super(MeuBolsoApp, self).__init__(**kwargs)
-    #
-    #     contato = None
-    #     Session = sessionmaker(bind=db)
-    #     session = Session()
-    #
-    #     try:
-    #         contato = session.query(Contato).filter(Contato.id ==1).first()
-    #         session.expunge(contato)
-    #         session.commit()
-    #     except:
-    #         session.rollback()
-    #     finally:
-    #         session.close()
-    #
-    #     print(contato.id, contato.nome)
-    #     contato.nome = 'pepe'
-    #     print(contato.id, contato.nome)
-    #
-    #
-    #     Session = sessionmaker(bind=db)
-    #     session = Session()
-    #
-    #     try:
-    #         # contato = session.query(Contato).filter(Contato.id ==1).first()
-    #         # session.expunge(contato)
-    #         session.add(contato)
-    #         session.commit()
-    #     except:
-    #         session.rollback()
-    #     finally:
-    #         session.close()
     def build(self):
-        self.load_strings()
+        self.db = db
+        self.locale = Locale(LOCALE)
         return self.root
-
-    def load_strings(self):
-        with open(os.path.join(datadir, 'languages', "%s.json" % LANGUAGE), 'r')as lang:
-            self.strings = json.load(lang)
 
 
 if __name__ == '__main__':

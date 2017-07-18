@@ -19,12 +19,13 @@
 #:import MDIconButton kivymd.button.MDIconButton
 #:import md_icons kivymd.icon_definitions.md_icons
 
+#:import format_date babel.dates.format_date
+#:import format_currency babel.numbers.format_currency
+
 #:import TELAS app.util.TELAS
 #:import TIPO_TRANSACAO app.util.TIPO_TRANSACAO
 #:import strings app.lang.s
 #:import icon iconfonts.icon
-
-
 
 
 MyRootLayout:
@@ -37,32 +38,32 @@ MyRootLayout:
 
         NavigationDrawerIconButton:
             icon: 'home'
-            text: "Inicio"
+            text: strings.inicio.capitalize()
             on_release: root.switch_to(TELAS.INICIO)
 
         NavigationDrawerIconButton:
             icon: 'account-multiple'
-            text: "Contatos"
+            text: strings.contatos.capitalize()
             on_release: root.switch_to(TELAS.LISTA_CONTATO)
 
         NavigationDrawerIconButton:
             icon: 'cash-multiple'
-            text: "Transações"
+            text: strings.transacoes.capitalize()
             on_release: root.switch_to(TELAS.LISTA_TRANSACAO)
 
         NavigationDrawerIconButton:
             icon: 'settings'
-            text: "Configurações"
+            text: strings.configuracoes.capitalize()
             on_release: root.switch_to(TELAS.CONFIGURACAO)
 
         NavigationDrawerIconButton:
             icon: 'help-circle'
-            text: "Sobre"
+            text: strings.sobre.capitalize()
             on_release: root.switch_to(TELAS.SOBRE)
 
         NavigationDrawerIconButton:
             icon: 'exit-to-app'
-            text: "Sair"
+            text: strings.sair.capitalize()
             on_release: app.stop()
 
     BoxLayout:

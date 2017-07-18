@@ -6,6 +6,7 @@ from kivy.uix.screenmanager import Screen
 from kivymd.dialog import MDDialog
 from kivymd.label import MDLabel
 
+from app.lang import s
 from app.models import *
 from app.util import TELAS
 from app.views.widgets import ContactListItem
@@ -40,26 +41,26 @@ kv = """
                 id: nome
                 hint_text: 'Nome:'
                 write_tabs: False
-                # text: root.contato.nome if root.contato is not None else ''
+                # text: root.contato.nome if root.contato else ''
 
             MDTextField:
                 id: telefone
                 hint_text: 'Telefone:'
                 write_tabs: False
-                # text: root.contato.telefone if root.contato is not None else ''
+                # text: root.contato.telefone if root.contato else ''
 
             MDTextField:
                 id: email
                 hint_text: 'Email:'
                 write_tabs: False
-                # text: root.contato.email if root.contato is not None else ''
+                # text: root.contato.email if root.contato else ''
 
             MDTextField:
                 id: endereco
                 multiline: True
                 hint_text: 'Endereço:'
                 write_tabs: False
-                # text: root.contato.endereco if root.contato is not None else ''
+                # text: root.contato.endereco if root.contato else ''
                 
     MDFloatingActionButton:
         # id: float_act_btn
@@ -92,23 +93,23 @@ kv = """
             MDTextField:
                 id: nome
                 hint_text: 'Nome:'
-                text: root.contato.nome if root.contato is not None else ''
+                text: root.contato.nome if root.contato else ''
 
             MDTextField:
                 id: telefone
                 hint_text: 'Telefone:'
-                text: root.contato.telefone if root.contato is not None else ''
+                text: root.contato.telefone if root.contato else ''
 
             MDTextField:
                 id: email
                 hint_text: 'Email:'
-                text: root.contato.email if root.contato is not None else ''
+                text: root.contato.email if root.contato else ''
 
             MDTextField:
                 id: endereco
                 multiline: True
                 hint_text: 'Endereço:'
-                text: root.contato.endereco if root.contato is not None else ''
+                text: root.contato.endereco if root.contato else ''
     
     MDFloatingActionButton:
         id: float_act_btn
@@ -124,7 +125,7 @@ kv = """
         opposite_colors: True
         elevation_normal: 8
         pos_hint: {'center_x': 0.85, 'center_y': 0.1}
-        on_press: app.root.switch_to(TELAS.DETALHE_CONTATO, contato=root.contato)
+        on_press: app.root.switch_to(TELAS.DETALHE_CONTATO, contato_id=root.contato.id)
 
 
 <TelaVisualizarContato>:
@@ -142,7 +143,7 @@ kv = """
                 size_hint_y: None
                 font_style: 'Display1'
                 height: dp(50)
-                text: root.contato.nome if root.contato is not None else ''
+                text: root.contato.nome if root.contato else ''
 
             BoxLayout:
                 size_hint_y: None
@@ -155,7 +156,7 @@ kv = """
                     size_hint_y: None
                     height: 48
                     font_size: '16'
-                    text: root.contato.telefone if root.contato is not None else ''
+                    text: root.contato.telefone if root.contato else ''
 
             BoxLayout:
                 size_hint_y: None
@@ -168,7 +169,7 @@ kv = """
                     size_hint_y: None
                     height: 48
                     font_size: '16'
-                    text: root.contato.email if root.contato is not None else ''
+                    text: root.contato.email if root.contato else ''
 
             BoxLayout:
                 size_hint_y: None
@@ -181,7 +182,7 @@ kv = """
                     size_hint_y: None
                     height: 48
                     font_size: '16'
-                    text: root.contato.endereco if root.contato is not None else ''
+                    text: root.contato.endereco if root.contato else ''
     
     MDFloatingActionButton:
         id: float_act_btn
@@ -189,12 +190,12 @@ kv = """
         opposite_colors: True
         elevation_normal: 8
         pos_hint: {'center_x': 0.85, 'center_y': 0.1}
-        on_press: app.root.switch_to(TELAS.EDITAR_CONTATO, contato=root.contato)
+        on_press: app.root.switch_to(TELAS.EDITAR_CONTATO, contato_id=root.contato.id)
 
 """
 
 Builder.load_string(kv)
-Session = sessionmaker(bind=db)
+# Session = sessionmaker(bind=db)
 
 
 class TelaContatos(Screen):
@@ -205,39 +206,38 @@ class TelaContatos(Screen):
 
     def on_pre_enter(self, *args):
         toolbar = self.app.root.ids.toolbar
+        toolbar.title = s.contatos.capitalize()
         toolbar.left_action_items = [
             ['menu', lambda x: self.app.root.toggle_nav_drawer()]]
-        toolbar.right_action_items = []
+        toolbar.right_action_items = [
+            ['sort-variant', lambda x: print('sort')]
+        ]
 
     def populate_listview(self):
         lista_contato = self.ids.contact_list
-        session = Session()
-        try:
-            for c in session.query(Contato).order_by(Contato.nome).all():
-                session.expunge(c)
-                lista_contato.add_widget(ContactListItem(c))
-                # session.commit()
-        except:
-            session.rollback()
-            raise
-        finally:
-            session.close()
+        for r in db(ContatoModel).select():
+            lista_contato.add_widget(ContactListItem(r))
+        # with session_scope() as session:
+        #     for c in session.query(Contato).order_by(Contato.nome).all():
+        #         lista_contato.add_widget(ContactListItem(c))
+        #         session.expunge(c)
 
 
 class TelaVisualizarContato(Screen):
     cheaderwidget = ObjectProperty()
     contato = ObjectProperty()
 
-    def __init__(self, contato, **kwargs):
+    def __init__(self, contato_id, **kwargs):
         self.app = App.get_running_app()
-        self.contato = contato
+        self.contato = ContatoModel[contato_id]
 
         super(TelaVisualizarContato, self).__init__(**kwargs)
 
     def on_pre_enter(self, *args):
         toolbar = self.app.root.ids['toolbar']
+        toolbar.title = s.perfil.capitalize()
         toolbar.left_action_items = [['arrow-left', lambda x: self.app.root.switch_to(TELAS.LISTA_CONTATO)]]
-        toolbar.right_action_items = []
+        toolbar.right_action_items = [['delete', lambda x: self.delete_contact()]]
 
     def delete_contact(self):
         content = MDLabel(
@@ -251,24 +251,11 @@ class TelaVisualizarContato(Screen):
 
     def confirm_delete(self):
         self.dialog.dismiss()
-        session = Session()
-        try:
-            contato = session.query(Contato).filter(Contato.id == self.contato.id).first()
-            session.delete(contato)
-            session.commit()
-        except:
-            session.rollback()
-            raise
-        finally:
-            session.close()
+        db(ContatoModel.id == self.contato.id).delete()
         self.app.root.switch_to(TELAS.LISTA_CONTATO)
 
 
 class TelaNovoContato(Screen):
-    nome = StringProperty()
-    telefone = StringProperty()
-    email = StringProperty()
-    endereco = StringProperty()
 
     def __init__(self, **kwargs):
         super(TelaNovoContato, self).__init__(**kwargs)
@@ -276,73 +263,48 @@ class TelaNovoContato(Screen):
 
     def on_pre_enter(self, *args):
         toolbar = self.app.root.ids.toolbar
+        toolbar.title = s.novo_contato.capitalize()
         toolbar.left_action_items = [['menu', lambda x: self.app.root.toggle_nav_drawer()]]
         toolbar.right_action_items = []
 
     def save_contact(self):
         contato = None
-        session = Session()
-        try:
-            nome = self.ids.nome.text
-            telefone = self.ids.telefone.text
-            email = self.ids.email.text
-            endereco = self.ids.endereco.text
-
-            contato = Contato(nome=nome, telefone=telefone, email=email, endereco=endereco)
-            session.add(contato)
-            session.commit()
-            session.expunge(contato)
-        except:
-            session.rollback()
-            raise
-        finally:
-            session.close()
-        self.app.root.switch_to(TELAS.DETALHE_CONTATO, contato=contato)
+        nome = self.ids.nome.text
+        telefone = self.ids.telefone.text
+        email = self.ids.email.text
+        endereco = self.ids.endereco.text
+        c = ContatoModel.insert(nome=nome, telefone=telefone, email=email,endereco=endereco)
+        db.commit()
+        self.app.root.switch_to(TELAS.DETALHE_CONTATO, contato_id=c.id)
+        # with session_scope() as session:
+        #
+        #     contato = Contato(nome=nome, telefone=telefone, email=email, endereco=endereco)
+        #     session.add(contato)
+        #     session.commit()
+        #     session.expunge(contato)
 
 
 class TelaEditarContato(Screen):
     contato = ObjectProperty()
 
-    def __init__(self, contato, **kwargs):
+    def __init__(self, contato_id, **kwargs):
         self.app = App.get_running_app()
-        self.contato = contato
+        self.contato = ContatoModel[contato_id]
         super(TelaEditarContato, self).__init__(**kwargs)
-
-    # def ler_contato(self, contato_id):
-    #     session = Session()
-    #     try:
-    #         self.contato = Contato.query.get(contato_id)
-    #         print(self.contato)
-    #         session.commit()
-    #
-    #     except:
-    #         session.rollback()
-    #         raise
-    #     finally:
-    #         session.close()
-    #
-    #     print(self.contato.nome)
 
     def on_pre_enter(self, *args):
         toolbar = self.app.root.ids.toolbar
+        toolbar.title = s.editar_contato.capitalize()
         toolbar.left_action_items = [
             ['menu', lambda x: self.app.root.toggle_nav_drawer()], ]
         toolbar.right_action_items = []
 
     def save_contact(self):
-        contato = None
-        session = Session()
-        try:
-            contato = session.query(Contato).filter_by(id=self.contato.id).first()
-            contato.nome = self.ids.nome.text
-            contato.telefone = self.ids.telefone.text
-            contato.email = self.ids.email.text
-            contato.endereco = self.ids.endereco.text
-            session.commit()
-            session.expunge(contato)
-        except:
-            session.rollback()
-            raise
-        finally:
-            session.close()
-        self.app.root.switch_to(TELAS.DETALHE_CONTATO, contato=contato)
+        contato = db(ContatoModel.id == self.contato.id).update(
+            nome = self.ids.nome.text,
+            telefone = self.ids.telefone.text,
+            email = self.ids.email.text,
+            endereco = self.ids.endereco.text
+        )
+        db.commit()
+        self.app.root.switch_to(TELAS.DETALHE_CONTATO, contato_id=self.contato.id)
