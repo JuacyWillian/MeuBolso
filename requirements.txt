@@ -11,7 +11,7 @@ luckydonald-utils==0.53
 migrations==0.1.1
 pony==0.7.1
 pony-up==0.1.1
-Pygments==2.2.0
+Pygments==2.7.4
 python-dateutil==2.6.0
 requests==2.18.1
 screen==1.0.1
